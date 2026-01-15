@@ -14,9 +14,13 @@ jobs:
     # Skip if commit is from the release workflow (avoid loops)
     if: "!startsWith(github.event.head_commit.message, 'chore:') && !startsWith(github.event.head_commit.message, 'chore(')"
     steps:
+      # TAP_GITHUB_TOKEN (a PAT) is required here instead of the default GITHUB_TOKEN
+      # because tag pushes made with GITHUB_TOKEN do not trigger other workflows.
+      # Without this, the Release workflow would not run when we push the tag.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.TAP_GITHUB_TOKEN }}
 
       - name: Read version
         id: version
@@ -27,6 +31,8 @@ jobs:
           echo "Creating release: $VERSION"
 
       - name: Create and push tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
