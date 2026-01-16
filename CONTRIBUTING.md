@@ -6,7 +6,7 @@ Thank you for your interest in contributing to gmail-ro!
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/piekstra/gmail-ro.git
+   git clone https://github.com/open-cli-collective/gmail-ro.git
    cd gmail-ro
    ```
 
@@ -25,21 +25,7 @@ Thank you for your interest in contributing to gmail-ro!
    make test
    ```
 
-## Development Workflow
-
-### Before Submitting
-
-Run all checks:
-```bash
-make verify
-```
-
-This runs:
-- `go fmt` - Code formatting
-- `golangci-lint` - Linting
-- `go test` - Tests with race detection
-
-### Running Tests
+## Running Tests
 
 ```bash
 # Run all tests
@@ -52,20 +38,32 @@ make test-cover
 make test-short
 ```
 
-### Linting
-
-```bash
-make lint
-```
-
-Requires [golangci-lint](https://golangci-lint.run/welcome/install/).
-
 ## Code Style
 
-- Follow standard Go conventions
-- Use `go fmt` for formatting
-- Write table-driven tests where appropriate
-- Add comments for exported functions
+- Run `gofmt` and `goimports` before committing
+- Run the linter: `make lint`
+- Follow Go conventions and idioms
+
+## Commit Messages
+
+We use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+feat: add new feature
+fix: fix a bug
+docs: update documentation
+test: add tests
+refactor: refactor code
+ci: update CI configuration
+chore: maintenance tasks
+```
+
+Examples:
+```
+feat: add labels list command
+fix: handle expired OAuth token gracefully
+docs: update installation instructions
+```
 
 ## Important: Read-Only Design
 
@@ -80,15 +78,29 @@ The `gmail.readonly` scope is fundamental to this project's design.
 ## Pull Request Process
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch: `git checkout -b feat/my-feature`
 3. Make your changes
 4. Run `make verify`
-5. Submit a pull request
+5. Commit with a conventional commit message
+6. Push and create a pull request
 
-## Reporting Issues
+## Project Structure
 
-Please include:
-- Go version (`go version`)
-- OS and architecture
-- Steps to reproduce
-- Expected vs actual behavior
+```
+gmail-ro/
+├── main.go               # Entry point
+├── cmd/                  # Command implementations
+│   ├── root.go           # Root command, version
+│   ├── search.go         # Search messages
+│   ├── read.go           # Read single message
+│   └── thread.go         # Read conversation thread
+├── internal/
+│   └── gmail/            # Gmail API client
+│       ├── client.go     # OAuth2 client, authentication
+│       └── messages.go   # Message parsing, API operations
+└── .github/              # GitHub workflows and templates
+```
+
+## Questions?
+
+Open an issue or start a discussion on GitHub.

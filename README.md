@@ -141,6 +141,58 @@ gmail-ro supports all Gmail search operators:
 
 See [Gmail search operators](https://support.google.com/mail/answer/7190) for the complete list.
 
+## Shell Completion
+
+gmail-ro supports tab completion for bash, zsh, fish, and PowerShell.
+
+### Bash
+
+```bash
+# Load in current session
+source <(gmail-ro completion bash)
+
+# Install permanently (Linux)
+gmail-ro completion bash | sudo tee /etc/bash_completion.d/gmail-ro > /dev/null
+
+# Install permanently (macOS with Homebrew)
+gmail-ro completion bash > $(brew --prefix)/etc/bash_completion.d/gmail-ro
+```
+
+### Zsh
+
+```bash
+# Load in current session
+source <(gmail-ro completion zsh)
+
+# Install permanently
+mkdir -p ~/.zsh/completions
+gmail-ro completion zsh > ~/.zsh/completions/_gmail-ro
+
+# Add to ~/.zshrc if not already present:
+# fpath=(~/.zsh/completions $fpath)
+# autoload -Uz compinit && compinit
+```
+
+### Fish
+
+```bash
+# Load in current session
+gmail-ro completion fish | source
+
+# Install permanently
+gmail-ro completion fish > ~/.config/fish/completions/gmail-ro.fish
+```
+
+### PowerShell
+
+```powershell
+# Load in current session
+gmail-ro completion powershell | Out-String | Invoke-Expression
+
+# Install permanently (add to $PROFILE)
+gmail-ro completion powershell >> $PROFILE
+```
+
 ## Configuration
 
 Configuration files are stored in `~/.config/gmail-ro/`:

@@ -1,11 +1,15 @@
 version: 2
 
+project_name: gmail-ro
+
 before:
   hooks:
     - go mod tidy
+    - go test ./...
 
 builds:
-  - env:
+  - id: gmail-ro
+    env:
       - CGO_ENABLED=0
     goos:
       - linux
@@ -14,25 +18,44 @@ builds:
     goarch:
       - amd64
       - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
     ldflags:
       - -s -w -X github.com/piekstra/gmail-ro/cmd.Version={{.Version}}
 
 archives:
-  - formats:
+  - id: default
+    formats:
       - tar.gz
     format_overrides:
       - goos: windows
         formats:
           - zip
     name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
 
 checksum:
   name_template: "checksums.txt"
 
 changelog:
   sort: asc
+  use: github
   filters:
     exclude:
       - "^docs:"
       - "^test:"
+      - "^ci:"
       - "^chore:"
+      - "^Merge pull request"
+  groups:
+    - title: 'Features'
+      regexp: '^feat:'
+      order: 0
+    - title: 'Bug Fixes'
+      regexp: '^fix:'
+      order: 1
+    - title: 'Other'
+      order: 999
