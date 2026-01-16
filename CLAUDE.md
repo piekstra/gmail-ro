@@ -55,7 +55,7 @@ gmail-ro/
 │   ├── auto-release.yml        # Create tags on main push
 │   └── release.yml             # Build and release binaries
 ├── Makefile                    # Build, test, lint targets
-└── go.mod                      # Module: github.com/piekstra/gmail-ro
+└── go.mod                      # Module: github.com/open-cli-collective/gmail-ro
 ```
 
 ## Key Patterns

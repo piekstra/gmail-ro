@@ -15,17 +15,18 @@ A read-only command-line interface for Gmail. Search, read, and view email threa
 ### Homebrew (macOS/Linux)
 
 ```bash
-brew install piekstra/tap/gmail-ro
+brew tap open-cli-collective/tap
+brew install --cask gmail-ro
 ```
 
 ### Download Binary
 
-Download the latest release for your platform from the [Releases page](https://github.com/piekstra/gmail-ro/releases).
+Download the latest release for your platform from the [Releases page](https://github.com/open-cli-collective/gmail-ro/releases).
 
 ### Build from Source
 
 ```bash
-go install github.com/piekstra/gmail-ro@latest
+go install github.com/open-cli-collective/gmail-ro@latest
 ```
 
 ## Setup
