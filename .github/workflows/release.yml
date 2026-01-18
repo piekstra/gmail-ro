@@ -93,3 +93,155 @@ jobs:
           git add -A
           git commit -m "Update gmail-ro to ${VERSION_NUM}"
           git push
+
+  chocolatey:
+    needs: goreleaser
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get checksums from release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          gh release download "${{ github.ref_name }}" --pattern "checksums.txt" --dir .
+
+          $checksums = Get-Content checksums.txt
+          $x64Line = $checksums | Select-String "windows_amd64.zip"
+          if (-not $x64Line) {
+            Write-Error "Could not find windows_amd64.zip checksum in checksums.txt"
+            exit 1
+          }
+          $x64Hash = $x64Line.Line.Split()[0]
+
+          Write-Host "x64 SHA256: $x64Hash"
+          echo "X64_HASH=$x64Hash" >> $env:GITHUB_ENV
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Update version and checksums
+        shell: pwsh
+        run: |
+          # Update version in nuspec
+          $nuspec = 'packaging/chocolatey/gmail-ro.nuspec'
+          (Get-Content $nuspec) -replace '<version>0.0.0</version>', "<version>$env:VERSION</version>" | Set-Content $nuspec
+          Write-Host "Updated nuspec to version $env:VERSION"
+
+          # Inject checksum into install script
+          $script = 'packaging/chocolatey/tools/chocolateyInstall.ps1'
+          $content = Get-Content $script -Raw
+          $content = $content -replace 'CHECKSUM_AMD64_PLACEHOLDER', $env:X64_HASH
+          Set-Content $script $content
+          Write-Host "Injected checksum into install script"
+
+      - name: Pack Chocolatey package
+        shell: pwsh
+        run: |
+          cd packaging/chocolatey
+          choco pack
+          Write-Host "Created package:"
+          Get-ChildItem *.nupkg
+
+      - name: Push to Chocolatey
+        shell: pwsh
+        run: |
+          cd packaging/chocolatey
+          $nupkg = (Get-ChildItem *.nupkg).Name
+          Write-Host "Pushing $nupkg to Chocolatey..."
+          choco push $nupkg --source https://push.chocolatey.org/ --key ${{ secrets.CHOCOLATEY_API_KEY }}
+          Write-Host "Successfully pushed to Chocolatey!"
+
+  winget:
+    needs: goreleaser
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install wingetcreate
+        shell: pwsh
+        run: |
+          Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          Write-Host "Downloaded wingetcreate"
+
+      - name: Check if manifest exists in winget-pkgs
+        id: check-manifest
+        shell: pwsh
+        run: |
+          $response = Invoke-WebRequest -Uri "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/o/OpenCliCollective/gmail-ro" -Method Head -SkipHttpErrorCheck
+          if ($response.StatusCode -eq 200) {
+            Write-Host "Manifest exists - will use wingetcreate update"
+            echo "exists=true" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Host "Manifest does not exist - will generate and submit new manifests"
+            echo "exists=false" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Get checksums from release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          gh release download "${{ github.ref_name }}" --pattern "checksums.txt" --dir .
+
+          $checksums = Get-Content checksums.txt
+          $x64Line = $checksums | Select-String "windows_amd64.zip"
+          if (-not $x64Line) {
+            Write-Error "Could not find windows_amd64.zip checksum in checksums.txt"
+            exit 1
+          }
+          $x64Hash = $x64Line.Line.Split()[0]
+
+          Write-Host "x64 SHA256: $x64Hash"
+          echo "X64_HASH=$x64Hash" >> $env:GITHUB_ENV
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Update manifest (existing package)
+        if: steps.check-manifest.outputs.exists == 'true'
+        shell: pwsh
+        run: |
+          $url = "https://github.com/open-cli-collective/gmail-ro/releases/download/${{ github.ref_name }}/gmail-ro_v${{ env.VERSION }}_windows_amd64.zip"
+
+          Write-Host "Updating existing manifest to version $env:VERSION"
+          Write-Host "URL: $url"
+          ./wingetcreate.exe update OpenCliCollective.gmail-ro --version $env:VERSION --urls $url --submit --token ${{ secrets.WINGET_GITHUB_TOKEN }}
+
+      - name: Create manifest (new package)
+        if: steps.check-manifest.outputs.exists == 'false'
+        shell: pwsh
+        run: |
+          $manifestDir = "manifests"
+          New-Item -ItemType Directory -Path $manifestDir -Force | Out-Null
+
+          # Update version manifest
+          $versionManifest = Get-Content "packaging/winget/OpenCliCollective.gmail-ro.yaml" -Raw
+          $versionManifest = $versionManifest -replace "0\.0\.0", $env:VERSION
+          Set-Content "$manifestDir/OpenCliCollective.gmail-ro.yaml" $versionManifest -Encoding UTF8
+
+          # Update locale manifest
+          $localeManifest = Get-Content "packaging/winget/OpenCliCollective.gmail-ro.locale.en-US.yaml" -Raw
+          $localeManifest = $localeManifest -replace "0\.0\.0", $env:VERSION
+          Set-Content "$manifestDir/OpenCliCollective.gmail-ro.locale.en-US.yaml" $localeManifest -Encoding UTF8
+
+          # Update installer manifest with version and checksum
+          $installerManifest = Get-Content "packaging/winget/OpenCliCollective.gmail-ro.installer.yaml" -Raw
+          $installerManifest = $installerManifest -replace "0\.0\.0", $env:VERSION
+          $installerManifest = $installerManifest -replace "0{64}", $env:X64_HASH
+          Set-Content "$manifestDir/OpenCliCollective.gmail-ro.installer.yaml" $installerManifest -Encoding UTF8
+
+          Write-Host "Generated manifests:"
+          Get-ChildItem $manifestDir | ForEach-Object { Write-Host "  $_" }
+
+          Write-Host "`nValidating manifests..."
+          winget validate --manifest $manifestDir
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Manifest validation failed"
+            exit 1
+          }
+          Write-Host "Validation passed!"
+
+          Write-Host "`nSubmitting new package to Winget..."
+          ./wingetcreate.exe submit --token ${{ secrets.WINGET_GITHUB_TOKEN }} $manifestDir
