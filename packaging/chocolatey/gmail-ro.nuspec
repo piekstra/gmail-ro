@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>gmail-ro</id>
+    <version>0.0.0</version>
+    <title>gmail-ro</title>
+    <authors>Caleb Piekstra</authors>
+    <owners>open-cli-collective</owners>
+    <licenseUrl>https://github.com/open-cli-collective/gmail-ro/blob/main/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/open-cli-collective/gmail-ro#readme</projectUrl>
+    <projectSourceUrl>https://github.com/open-cli-collective/gmail-ro</projectSourceUrl>
+    <packageSourceUrl>https://github.com/open-cli-collective/gmail-ro/tree/main/packaging/chocolatey</packageSourceUrl>
+    <bugTrackerUrl>https://github.com/open-cli-collective/gmail-ro/issues</bugTrackerUrl>
+    <copyright>Copyright (c) 2025 Caleb Piekstra</copyright>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A read-only command-line interface for Gmail.
+
+Features:
+- Read-only access using gmail.readonly OAuth scope
+- Search messages with full Gmail search syntax support
+- Read complete message content
+- View entire conversation threads
+- JSON output for scripting
+
+This tool cannot modify, send, or delete messages.
+
+Binary: gmail-ro.exe</description>
+    <summary>Read-only CLI for Gmail - search, read, and view email threads</summary>
+    <releaseNotes>https://github.com/open-cli-collective/gmail-ro/releases</releaseNotes>
+    <tags>cli gmail email readonly google oauth command-line</tags>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
