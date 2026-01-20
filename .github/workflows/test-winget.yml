@@ -27,20 +27,20 @@ jobs:
           New-Item -ItemType Directory -Path $testDir -Force | Out-Null
 
           # Process version manifest
-          $content = Get-Content "packaging/winget/OpenCliCollective.gmail-ro.yaml" -Raw
+          $content = Get-Content "packaging/winget/OpenCLICollective.gmail-ro.yaml" -Raw
           $content = $content -replace "0\.0\.0", $testVersion
-          Set-Content "$testDir/OpenCliCollective.gmail-ro.yaml" $content -Encoding UTF8
+          Set-Content "$testDir/OpenCLICollective.gmail-ro.yaml" $content -Encoding UTF8
 
           # Process locale manifest
-          $content = Get-Content "packaging/winget/OpenCliCollective.gmail-ro.locale.en-US.yaml" -Raw
+          $content = Get-Content "packaging/winget/OpenCLICollective.gmail-ro.locale.en-US.yaml" -Raw
           $content = $content -replace "0\.0\.0", $testVersion
-          Set-Content "$testDir/OpenCliCollective.gmail-ro.locale.en-US.yaml" $content -Encoding UTF8
+          Set-Content "$testDir/OpenCLICollective.gmail-ro.locale.en-US.yaml" $content -Encoding UTF8
 
           # Process installer manifest (version + checksum)
-          $content = Get-Content "packaging/winget/OpenCliCollective.gmail-ro.installer.yaml" -Raw
+          $content = Get-Content "packaging/winget/OpenCLICollective.gmail-ro.installer.yaml" -Raw
           $content = $content -replace "0\.0\.0", $testVersion
           $content = $content -replace "0{64}", $testHash
-          Set-Content "$testDir/OpenCliCollective.gmail-ro.installer.yaml" $content -Encoding UTF8
+          Set-Content "$testDir/OpenCLICollective.gmail-ro.installer.yaml" $content -Encoding UTF8
 
           Write-Host "Generated test manifests:"
           Get-ChildItem $testDir | ForEach-Object { Write-Host "  $_" }

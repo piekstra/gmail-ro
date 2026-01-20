@@ -24,7 +24,7 @@ jobs:
         id: check-manifest
         shell: pwsh
         run: |
-          $response = Invoke-WebRequest -Uri "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/o/OpenCliCollective/gmail-ro" -Method Head -SkipHttpErrorCheck
+          $response = Invoke-WebRequest -Uri "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/o/OpenCLICollective/gmail-ro" -Method Head -SkipHttpErrorCheck
           if ($response.StatusCode -eq 200) {
             Write-Host "Manifest exists - will use wingetcreate update"
             echo "exists=true" >> $env:GITHUB_OUTPUT
@@ -72,7 +72,7 @@ jobs:
 
           Write-Host "Updating existing manifest to version $version"
           Write-Host "URL: $url"
-          ./wingetcreate.exe update OpenCliCollective.gmail-ro --version $version --urls $url --submit --token ${{ secrets.WINGET_GITHUB_TOKEN }}
+          ./wingetcreate.exe update OpenCLICollective.gmail-ro --version $version --urls $url --submit --token ${{ secrets.WINGET_GITHUB_TOKEN }}
 
       - name: Create manifest (new package)
         if: steps.check-manifest.outputs.exists == 'false'
@@ -83,20 +83,20 @@ jobs:
           New-Item -ItemType Directory -Path $manifestDir -Force | Out-Null
 
           # Update version manifest
-          $versionManifest = Get-Content "packaging/winget/OpenCliCollective.gmail-ro.yaml" -Raw
+          $versionManifest = Get-Content "packaging/winget/OpenCLICollective.gmail-ro.yaml" -Raw
           $versionManifest = $versionManifest -replace "0\.0\.0", $version
-          Set-Content "$manifestDir/OpenCliCollective.gmail-ro.yaml" $versionManifest -Encoding UTF8
+          Set-Content "$manifestDir/OpenCLICollective.gmail-ro.yaml" $versionManifest -Encoding UTF8
 
           # Update locale manifest
-          $localeManifest = Get-Content "packaging/winget/OpenCliCollective.gmail-ro.locale.en-US.yaml" -Raw
+          $localeManifest = Get-Content "packaging/winget/OpenCLICollective.gmail-ro.locale.en-US.yaml" -Raw
           $localeManifest = $localeManifest -replace "0\.0\.0", $version
-          Set-Content "$manifestDir/OpenCliCollective.gmail-ro.locale.en-US.yaml" $localeManifest -Encoding UTF8
+          Set-Content "$manifestDir/OpenCLICollective.gmail-ro.locale.en-US.yaml" $localeManifest -Encoding UTF8
 
           # Update installer manifest with version and checksum
-          $installerManifest = Get-Content "packaging/winget/OpenCliCollective.gmail-ro.installer.yaml" -Raw
+          $installerManifest = Get-Content "packaging/winget/OpenCLICollective.gmail-ro.installer.yaml" -Raw
           $installerManifest = $installerManifest -replace "0\.0\.0", $version
           $installerManifest = $installerManifest -replace "0{64}", $env:X64_HASH
-          Set-Content "$manifestDir/OpenCliCollective.gmail-ro.installer.yaml" $installerManifest -Encoding UTF8
+          Set-Content "$manifestDir/OpenCLICollective.gmail-ro.installer.yaml" $installerManifest -Encoding UTF8
 
           Write-Host "Generated manifests:"
           Get-ChildItem $manifestDir | ForEach-Object { Write-Host "  $_" }

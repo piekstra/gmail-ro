@@ -8,9 +8,9 @@ Winget requires three manifest files (schema version 1.10.0):
 
 ```
 packaging/winget/
-├── OpenCliCollective.gmail-ro.yaml              # Version manifest
-├── OpenCliCollective.gmail-ro.installer.yaml    # Installer manifest
-├── OpenCliCollective.gmail-ro.locale.en-US.yaml # Locale manifest
+├── OpenCLICollective.gmail-ro.yaml              # Version manifest
+├── OpenCLICollective.gmail-ro.installer.yaml    # Installer manifest
+├── OpenCLICollective.gmail-ro.locale.en-US.yaml # Locale manifest
 └── README.md                                    # This file
 ```
 
@@ -46,7 +46,7 @@ The GitHub Actions workflow:
 ### New vs Update Detection
 
 ```powershell
-$response = Invoke-WebRequest -Uri "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/o/OpenCliCollective/gmail-ro" -Method Head -SkipHttpErrorCheck
+$response = Invoke-WebRequest -Uri "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/o/OpenCLICollective/gmail-ro" -Method Head -SkipHttpErrorCheck
 if ($response.StatusCode -eq 200) {
     # Package exists - use wingetcreate update
 } else {
@@ -95,7 +95,7 @@ To validate the manifests locally (requires Windows with winget):
 Once the package is published to winget-pkgs:
 
 ```powershell
-winget install OpenCliCollective.gmail-ro
+winget install OpenCLICollective.gmail-ro
 ```
 
 ## Related
