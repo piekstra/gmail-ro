@@ -3,9 +3,7 @@ package cmd
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
-	"strings"
 
 	"github.com/piekstra/gmail-ro/internal/gmail"
 	"github.com/spf13/cobra"
@@ -47,19 +45,10 @@ Examples:
 			return enc.Encode(msg)
 		}
 
-		fmt.Printf("ID: %s\n", msg.ID)
-		fmt.Printf("From: %s\n", msg.From)
-		fmt.Printf("To: %s\n", msg.To)
-		fmt.Printf("Subject: %s\n", msg.Subject)
-		fmt.Printf("Date: %s\n", msg.Date)
-		if len(msg.Labels) > 0 {
-			fmt.Printf("Labels: %s\n", strings.Join(msg.Labels, ", "))
-		}
-		if len(msg.Categories) > 0 {
-			fmt.Printf("Categories: %s\n", strings.Join(msg.Categories, ", "))
-		}
-		fmt.Print("\n--- Body ---\n\n")
-		fmt.Println(msg.Body)
+		printMessageHeader(msg, MessagePrintOptions{
+			IncludeTo:   true,
+			IncludeBody: true,
+		})
 
 		return nil
 	},

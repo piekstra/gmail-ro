@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/piekstra/gmail-ro/internal/gmail"
 	"github.com/spf13/cobra"
@@ -58,19 +57,10 @@ Examples:
 		fmt.Printf("Thread contains %d message(s)\n\n", len(messages))
 		for i, msg := range messages {
 			fmt.Printf("=== Message %d of %d ===\n", i+1, len(messages))
-			fmt.Printf("ID: %s\n", msg.ID)
-			fmt.Printf("From: %s\n", msg.From)
-			fmt.Printf("To: %s\n", msg.To)
-			fmt.Printf("Subject: %s\n", msg.Subject)
-			fmt.Printf("Date: %s\n", msg.Date)
-			if len(msg.Labels) > 0 {
-				fmt.Printf("Labels: %s\n", strings.Join(msg.Labels, ", "))
-			}
-			if len(msg.Categories) > 0 {
-				fmt.Printf("Categories: %s\n", strings.Join(msg.Categories, ", "))
-			}
-			fmt.Print("\n--- Body ---\n\n")
-			fmt.Println(msg.Body)
+			printMessageHeader(msg, MessagePrintOptions{
+				IncludeTo:   true,
+				IncludeBody: true,
+			})
 			fmt.Println()
 		}
 
