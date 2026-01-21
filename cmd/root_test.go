@@ -49,7 +49,8 @@ func TestVersionCommand(t *testing.T) {
 		Version = "test-version"
 		defer func() { Version = oldVersion }()
 
-		versionCmd.Run(versionCmd, []string{})
+		err := versionCmd.RunE(versionCmd, []string{})
+		assert.NoError(t, err)
 
 		// Note: output goes to stdout, not the buffer set on rootCmd
 		// This test verifies the command doesn't panic
