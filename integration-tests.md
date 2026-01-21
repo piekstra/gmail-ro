@@ -34,7 +34,7 @@ gmail-ro search "is:inbox" --max 1  # Quick connectivity check
 
 | Test Case | Command | Expected Result |
 |-----------|---------|-----------------|
-| Search inbox | `gmail-ro search "is:inbox" --max 5` | Returns messages with ID, ThreadId, From, Subject, Date, Snippet |
+| Search inbox | `gmail-ro search "is:inbox" --max 5` | Returns messages with ID, ThreadID, From, Subject, Date, Snippet |
 | Search with default limit | `gmail-ro search "is:inbox"` | Returns up to 10 messages (default) |
 | Custom result limit | `gmail-ro search "is:inbox" --max 3` | Returns exactly 3 messages |
 | JSON output | `gmail-ro search "is:inbox" --max 2 --json` | Valid JSON array with message objects |
@@ -59,7 +59,7 @@ gmail-ro search "is:inbox" --max 1  # Quick connectivity check
 |-----------|---------|-----------------|
 | JSON has required fields | `gmail-ro search "is:inbox" --max 1 --json \| jq '.[0] \| keys'` | Contains: id, threadId, from, subject, date, snippet |
 | JSON ID is string | `gmail-ro search "is:inbox" --max 1 --json \| jq -e '.[0].id \| type == "string"'` | Returns true |
-| JSON ThreadId present | `gmail-ro search "is:inbox" --max 1 --json \| jq -e '.[0].threadId != null'` | Returns true |
+| JSON ThreadID present | `gmail-ro search "is:inbox" --max 1 --json \| jq -e '.[0].threadId != null'` | Returns true |
 
 ---
 
@@ -202,7 +202,7 @@ ATTACHMENT_MSG_ID=$(gmail-ro search "has:attachment" --max 1 --json | jq -r '.[0
 
 | Command Type | Expected Fields |
 |--------------|-----------------|
-| Search | ID, ThreadId, From, Subject, Date, Labels (if any), Categories (if any), Snippet, separator (---) |
+| Search | ID, ThreadID, From, Subject, Date, Labels (if any), Categories (if any), Snippet, separator (---) |
 | Read | ID, From, To, Subject, Date, Labels (if any), Categories (if any), "--- Body ---", body content |
 | Thread | "Thread contains N message(s)", per-message: "=== Message X of Y ===", ID, From, To, Subject, Date, Labels, Categories, body |
 | Labels | NAME, TYPE, TOTAL, UNREAD columns |

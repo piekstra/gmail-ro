@@ -27,7 +27,7 @@ func TestParseMessage(t *testing.T) {
 		result := parseMessage(msg, false, nil)
 
 		assert.Equal(t, "msg123", result.ID)
-		assert.Equal(t, "thread456", result.ThreadId)
+		assert.Equal(t, "thread456", result.ThreadID)
 		assert.Equal(t, "Test Subject", result.Subject)
 		assert.Equal(t, "alice@example.com", result.From)
 		assert.Equal(t, "bob@example.com", result.To)
@@ -47,7 +47,7 @@ func TestParseMessage(t *testing.T) {
 		result := parseMessage(msg, false, nil)
 
 		assert.Equal(t, "msg123", result.ID)
-		assert.Equal(t, "thread789", result.ThreadId)
+		assert.Equal(t, "thread789", result.ThreadID)
 	})
 
 	t.Run("handles case-insensitive headers", func(t *testing.T) {
@@ -205,7 +205,7 @@ func TestMessageStruct(t *testing.T) {
 	t.Run("message struct has all fields", func(t *testing.T) {
 		msg := &Message{
 			ID:       "test-id",
-			ThreadId: "thread-id",
+			ThreadID: "thread-id",
 			Subject:  "Test Subject",
 			From:     "from@example.com",
 			To:       "to@example.com",
@@ -215,7 +215,7 @@ func TestMessageStruct(t *testing.T) {
 		}
 
 		assert.Equal(t, "test-id", msg.ID)
-		assert.Equal(t, "thread-id", msg.ThreadId)
+		assert.Equal(t, "thread-id", msg.ThreadID)
 		assert.Equal(t, "Test Subject", msg.Subject)
 		assert.Equal(t, "from@example.com", msg.From)
 		assert.Equal(t, "to@example.com", msg.To)

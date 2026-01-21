@@ -102,7 +102,7 @@ gmail-ro search "after:2024/01/01 before:2024/02/01"
 gmail-ro search "from:alice@example.com subject:project has:attachment"
 ```
 
-Search results include both `ID` (message ID) and `ThreadId` (thread ID). Either can be
+Search results include both `ID` (message ID) and `ThreadID` (thread ID). Either can be
 used with the `thread` command.
 
 ### Read a Message

@@ -25,7 +25,7 @@ var threadCmd = &cobra.Command{
 
 Accepts either a thread ID or a message ID. If a message ID is provided,
 the thread containing that message will be retrieved automatically.
-Use the search command to find message IDs (the ThreadId field can also
+Use the search command to find message IDs (the ThreadID field can also
 be used directly).
 
 Examples:

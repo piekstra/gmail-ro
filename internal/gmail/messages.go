@@ -11,7 +11,7 @@ import (
 // Message represents a simplified email message
 type Message struct {
 	ID          string        `json:"id"`
-	ThreadId    string        `json:"threadId"`
+	ThreadID    string        `json:"threadId"`
 	Subject     string        `json:"subject"`
 	From        string        `json:"from"`
 	To          string        `json:"to"`
@@ -115,7 +115,7 @@ type LabelResolver func(labelID string) string
 func parseMessage(msg *gmail.Message, includeBody bool, resolver LabelResolver) *Message {
 	m := &Message{
 		ID:       msg.Id,
-		ThreadId: msg.ThreadId,
+		ThreadID: msg.ThreadId,
 		Snippet:  msg.Snippet,
 	}
 
