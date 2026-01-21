@@ -374,3 +374,225 @@ func TestConfigDir_NoXDG(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, filepath.Join(home, ".config", serviceName), dir)
 }
+
+// mockTokenSource is a test double for oauth2.TokenSource
+type mockTokenSource struct {
+	token *oauth2.Token
+	err   error
+	calls int
+}
+
+func (m *mockTokenSource) Token() (*oauth2.Token, error) {
+	m.calls++
+	return m.token, m.err
+}
+
+func TestPersistentTokenSource_NoChange(t *testing.T) {
+	// Create initial token
+	initialToken := &oauth2.Token{
+		AccessToken:  "initial-token",
+		RefreshToken: "refresh-token",
+		TokenType:    "Bearer",
+		Expiry:       time.Now().Add(time.Hour),
+	}
+
+	// Mock returns the same token (no refresh occurred)
+	mock := &mockTokenSource{token: initialToken}
+
+	// Create PersistentTokenSource with mock base
+	pts := &PersistentTokenSource{
+		base:    mock,
+		current: initialToken,
+	}
+
+	// Call Token()
+	token, err := pts.Token()
+	require.NoError(t, err)
+	assert.Equal(t, "initial-token", token.AccessToken)
+	assert.Equal(t, 1, mock.calls)
+
+	// current should remain the same (same pointer)
+	assert.Same(t, initialToken, pts.current)
+}
+
+func TestPersistentTokenSource_RefreshUpdatesCurrent(t *testing.T) {
+	// Create initial token
+	initialToken := &oauth2.Token{
+		AccessToken:  "initial-token",
+		RefreshToken: "refresh-token",
+		TokenType:    "Bearer",
+		Expiry:       time.Now().Add(-time.Hour), // Expired
+	}
+
+	// Create refreshed token (different access token)
+	refreshedToken := &oauth2.Token{
+		AccessToken:  "refreshed-token",
+		RefreshToken: "new-refresh-token",
+		TokenType:    "Bearer",
+		Expiry:       time.Now().Add(time.Hour),
+	}
+
+	// Mock returns the refreshed token
+	mock := &mockTokenSource{token: refreshedToken}
+
+	// Create PersistentTokenSource with mock base
+	pts := &PersistentTokenSource{
+		base:    mock,
+		current: initialToken,
+	}
+
+	// Call Token() - should detect change and update current
+	token, err := pts.Token()
+	require.NoError(t, err)
+	assert.Equal(t, "refreshed-token", token.AccessToken)
+	assert.Equal(t, 1, mock.calls)
+
+	// Verify current was updated to the refreshed token
+	assert.Equal(t, "refreshed-token", pts.current.AccessToken)
+	assert.Equal(t, "new-refresh-token", pts.current.RefreshToken)
+}
+
+func TestPersistentTokenSource_NilCurrentUpdatesCurrent(t *testing.T) {
+	// Create token
+	newToken := &oauth2.Token{
+		AccessToken:  "new-token",
+		RefreshToken: "refresh-token",
+		TokenType:    "Bearer",
+		Expiry:       time.Now().Add(time.Hour),
+	}
+
+	// Mock returns the token
+	mock := &mockTokenSource{token: newToken}
+
+	// Create PersistentTokenSource with nil current
+	pts := &PersistentTokenSource{
+		base:    mock,
+		current: nil, // No current token
+	}
+
+	// Call Token() - should detect as change (nil -> token) and update current
+	token, err := pts.Token()
+	require.NoError(t, err)
+	assert.Equal(t, "new-token", token.AccessToken)
+
+	// Verify current was set
+	require.NotNil(t, pts.current)
+	assert.Equal(t, "new-token", pts.current.AccessToken)
+}
+
+func TestPersistentTokenSource_BaseError(t *testing.T) {
+	// Mock returns an error
+	mock := &mockTokenSource{
+		token: nil,
+		err:   assert.AnError,
+	}
+
+	initialToken := &oauth2.Token{
+		AccessToken: "initial-token",
+		TokenType:   "Bearer",
+	}
+
+	// Create PersistentTokenSource with mock base
+	pts := &PersistentTokenSource{
+		base:    mock,
+		current: initialToken,
+	}
+
+	// Call Token() - should propagate error
+	token, err := pts.Token()
+	assert.Error(t, err)
+	assert.Nil(t, token)
+	assert.Equal(t, 1, mock.calls)
+
+	// current should remain unchanged on error
+	assert.Equal(t, "initial-token", pts.current.AccessToken)
+}
+
+func TestPersistentTokenSource_MultipleCalls_NoChange(t *testing.T) {
+	// Create token
+	stableToken := &oauth2.Token{
+		AccessToken:  "stable-token",
+		RefreshToken: "refresh-token",
+		TokenType:    "Bearer",
+		Expiry:       time.Now().Add(time.Hour),
+	}
+
+	// Mock returns the same token every time
+	mock := &mockTokenSource{token: stableToken}
+
+	// Create PersistentTokenSource with initial current set
+	pts := &PersistentTokenSource{
+		base:    mock,
+		current: stableToken, // Already set to same token
+	}
+
+	// Multiple calls should all succeed
+	for i := 0; i < 3; i++ {
+		token, err := pts.Token()
+		require.NoError(t, err)
+		assert.Equal(t, "stable-token", token.AccessToken)
+	}
+
+	// Verify mock was called 3 times
+	assert.Equal(t, 3, mock.calls)
+
+	// current should still be the same
+	assert.Same(t, stableToken, pts.current)
+}
+
+func TestPersistentTokenSource_ChangeDetection(t *testing.T) {
+	// Test that change detection works correctly by tracking current updates
+
+	// Create tokens
+	token1 := &oauth2.Token{AccessToken: "token-1", TokenType: "Bearer"}
+	token2 := &oauth2.Token{AccessToken: "token-2", TokenType: "Bearer"}
+	token3 := &oauth2.Token{AccessToken: "token-2", TokenType: "Bearer"} // Same access token as token2
+
+	// Mock that we can update between calls
+	mock := &mockTokenSource{token: token1}
+
+	pts := &PersistentTokenSource{
+		base:    mock,
+		current: nil,
+	}
+
+	// First call: nil -> token1 (change detected)
+	_, err := pts.Token()
+	require.NoError(t, err)
+	assert.Equal(t, "token-1", pts.current.AccessToken)
+	originalCurrent := pts.current
+
+	// Second call: token1 -> token2 (change detected)
+	mock.token = token2
+	_, err = pts.Token()
+	require.NoError(t, err)
+	assert.Equal(t, "token-2", pts.current.AccessToken)
+	assert.NotSame(t, originalCurrent, pts.current) // current was updated
+
+	// Third call: token2 -> token3 (same AccessToken, no change)
+	secondCurrent := pts.current
+	mock.token = token3
+	_, err = pts.Token()
+	require.NoError(t, err)
+	// current should not have changed since AccessToken is the same
+	assert.Same(t, secondCurrent, pts.current)
+}
+
+func TestPersistentTokenSource_ReturnsCorrectToken(t *testing.T) {
+	// Verify that Token() returns the token from base, not current
+	initialToken := &oauth2.Token{AccessToken: "initial", TokenType: "Bearer"}
+	baseToken := &oauth2.Token{AccessToken: "from-base", TokenType: "Bearer"}
+
+	mock := &mockTokenSource{token: baseToken}
+
+	pts := &PersistentTokenSource{
+		base:    mock,
+		current: initialToken,
+	}
+
+	token, err := pts.Token()
+	require.NoError(t, err)
+
+	// Should return the token from base, not current
+	assert.Equal(t, "from-base", token.AccessToken)
+}
