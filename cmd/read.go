@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
-	"os"
 
 	"github.com/piekstra/gmail-ro/internal/gmail"
 	"github.com/spf13/cobra"
@@ -40,9 +38,7 @@ Examples:
 		}
 
 		if readJSONOutput {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "  ")
-			return enc.Encode(msg)
+			return printJSON(msg)
 		}
 
 		printMessageHeader(msg, MessagePrintOptions{

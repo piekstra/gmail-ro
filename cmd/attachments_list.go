@@ -2,9 +2,7 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/piekstra/gmail-ro/internal/gmail"
 	"github.com/spf13/cobra"
@@ -46,9 +44,7 @@ Examples:
 		}
 
 		if listAttachmentsJSON {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "  ")
-			return enc.Encode(attachments)
+			return printJSON(attachments)
 		}
 
 		fmt.Printf("Found %d attachment(s):\n\n", len(attachments))

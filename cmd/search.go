@@ -2,9 +2,7 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/piekstra/gmail-ro/internal/gmail"
 	"github.com/spf13/cobra"
@@ -52,9 +50,7 @@ For more query operators, see: https://support.google.com/mail/answer/7190`,
 		}
 
 		if searchJSONOutput {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "  ")
-			return enc.Encode(messages)
+			return printJSON(messages)
 		}
 
 		for _, msg := range messages {

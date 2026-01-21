@@ -1,11 +1,20 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/piekstra/gmail-ro/internal/gmail"
 )
+
+// printJSON encodes data as indented JSON to stdout
+func printJSON(data any) error {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "  ")
+	return enc.Encode(data)
+}
 
 // MessagePrintOptions controls which fields to include in message output
 type MessagePrintOptions struct {

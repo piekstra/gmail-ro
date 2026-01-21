@@ -2,9 +2,7 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/piekstra/gmail-ro/internal/gmail"
 	"github.com/spf13/cobra"
@@ -49,9 +47,7 @@ Examples:
 		}
 
 		if threadJSONOutput {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "  ")
-			return enc.Encode(messages)
+			return printJSON(messages)
 		}
 
 		fmt.Printf("Thread contains %d message(s)\n\n", len(messages))
