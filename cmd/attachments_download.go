@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -52,8 +51,7 @@ Examples:
 			return fmt.Errorf("must specify --filename or --all")
 		}
 
-		ctx := context.Background()
-		client, err := gmail.NewClient(ctx)
+		client, err := newGmailClient()
 		if err != nil {
 			return err
 		}

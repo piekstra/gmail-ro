@@ -1,10 +1,8 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/piekstra/gmail-ro/internal/gmail"
 	"github.com/spf13/cobra"
 )
 
@@ -27,8 +25,7 @@ Examples:
   gmail-ro attachments list 18abc123def456 --json`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := context.Background()
-		client, err := gmail.NewClient(ctx)
+		client, err := newGmailClient()
 		if err != nil {
 			return err
 		}
