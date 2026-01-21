@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -8,6 +9,11 @@ import (
 
 	"github.com/piekstra/gmail-ro/internal/gmail"
 )
+
+// newGmailClient creates and returns a new Gmail client
+func newGmailClient() (*gmail.Client, error) {
+	return gmail.NewClient(context.Background())
+}
 
 // printJSON encodes data as indented JSON to stdout
 func printJSON(data any) error {

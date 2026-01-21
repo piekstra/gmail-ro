@@ -1,10 +1,8 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/piekstra/gmail-ro/internal/gmail"
 	"github.com/spf13/cobra"
 )
 
@@ -33,8 +31,7 @@ Examples:
 For more query operators, see: https://support.google.com/mail/answer/7190`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := context.Background()
-		client, err := gmail.NewClient(ctx)
+		client, err := newGmailClient()
 		if err != nil {
 			return err
 		}

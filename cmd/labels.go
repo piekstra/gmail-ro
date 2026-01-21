@@ -1,12 +1,10 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"sort"
 	"strings"
 
-	"github.com/piekstra/gmail-ro/internal/gmail"
 	"github.com/spf13/cobra"
 	gmailapi "google.golang.org/api/gmail/v1"
 )
@@ -39,8 +37,7 @@ Examples:
   gmail-ro labels --json`,
 	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := context.Background()
-		client, err := gmail.NewClient(ctx)
+		client, err := newGmailClient()
 		if err != nil {
 			return err
 		}
