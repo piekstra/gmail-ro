@@ -63,7 +63,7 @@ Examples:
 		}
 
 		if len(attachments) == 0 {
-			fmt.Println("No attachments found.")
+			fmt.Println("No attachments found for message.")
 			return nil
 		}
 
