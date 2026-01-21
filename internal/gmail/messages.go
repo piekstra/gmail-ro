@@ -247,45 +247,28 @@ func isInlineAttachment(part *gmail.MessagePart) bool {
 }
 
 func extractBody(payload *gmail.MessagePart) string {
-	// Try to get plain text body first
-	if payload.MimeType == "text/plain" && payload.Body != nil && payload.Body.Data != "" {
-		decoded, err := base64.URLEncoding.DecodeString(payload.Body.Data)
-		if err == nil {
+	// Try plain text first, then fall back to HTML
+	for _, mimeType := range []string{"text/plain", "text/html"} {
+		if body := findBodyByMimeType(payload, mimeType); body != "" {
+			return body
+		}
+	}
+	return ""
+}
+
+// findBodyByMimeType searches for body content matching the given MIME type
+func findBodyByMimeType(part *gmail.MessagePart, mimeType string) string {
+	// Check current part
+	if part.MimeType == mimeType && part.Body != nil && part.Body.Data != "" {
+		if decoded, err := base64.URLEncoding.DecodeString(part.Body.Data); err == nil {
 			return string(decoded)
 		}
 	}
 
-	// Check parts for multipart messages
-	for _, part := range payload.Parts {
-		if part.MimeType == "text/plain" && part.Body != nil && part.Body.Data != "" {
-			decoded, err := base64.URLEncoding.DecodeString(part.Body.Data)
-			if err == nil {
-				return string(decoded)
-			}
-		}
-		// Recursively check nested parts
-		if len(part.Parts) > 0 {
-			body := extractBody(part)
-			if body != "" {
-				return body
-			}
-		}
-	}
-
-	// Fallback to HTML if no plain text found
-	if payload.MimeType == "text/html" && payload.Body != nil && payload.Body.Data != "" {
-		decoded, err := base64.URLEncoding.DecodeString(payload.Body.Data)
-		if err == nil {
-			return string(decoded)
-		}
-	}
-
-	for _, part := range payload.Parts {
-		if part.MimeType == "text/html" && part.Body != nil && part.Body.Data != "" {
-			decoded, err := base64.URLEncoding.DecodeString(part.Body.Data)
-			if err == nil {
-				return string(decoded)
-			}
+	// Check nested parts recursively
+	for _, child := range part.Parts {
+		if body := findBodyByMimeType(child, mimeType); body != "" {
+			return body
 		}
 	}
 
