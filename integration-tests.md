@@ -151,7 +151,7 @@ ATTACHMENT_MSG_ID=$(gmail-ro search "has:attachment" --max 1 --json | jq -r '.[0
 |-----------|---------|-----------------|
 | List attachments | `gmail-ro attachments list "$ATTACHMENT_MSG_ID"` | Shows filename, type, size for each attachment |
 | List JSON | `gmail-ro attachments list "$ATTACHMENT_MSG_ID" --json` | Valid JSON array with attachment metadata |
-| No attachments | `MSG_ID=$(gmail-ro search "is:inbox -has:attachment" --max 1 --json \| jq -r '.[0].id'); gmail-ro attachments list "$MSG_ID"` | "No attachments found." |
+| No attachments | `MSG_ID=$(gmail-ro search "is:inbox -has:attachment" --max 1 --json \| jq -r '.[0].id'); gmail-ro attachments list "$MSG_ID"` | "No attachments found for message." |
 
 ### JSON Validation
 
