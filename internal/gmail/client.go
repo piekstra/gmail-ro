@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/piekstra/gmail-ro/internal/keychain"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/gmail/v1"
@@ -83,17 +84,34 @@ func getConfigDir() (string, error) {
 
 func getHTTPClient(ctx context.Context, config *oauth2.Config, configDir string) (*http.Client, error) {
 	tokPath := filepath.Join(configDir, tokenFile)
-	tok, err := tokenFromFile(tokPath)
+
+	// Attempt migration from file to keychain (idempotent)
+	_ = keychain.MigrateFromFile(tokPath)
+
+	// Try to load token: keychain first, then file fallback
+	tok, err := keychain.GetToken()
+	if err != nil {
+		tok, err = tokenFromFile(tokPath)
+	}
+
+	// No token found - need web auth flow
 	if err != nil {
 		tok, err = getTokenFromWeb(ctx, config)
 		if err != nil {
 			return nil, err
 		}
-		if err := saveToken(tokPath, tok); err != nil {
-			return nil, err
+		// Save new token to keychain (or file fallback)
+		if kerr := keychain.SetToken(tok); kerr != nil {
+			// Fall back to file storage
+			if serr := saveToken(tokPath, tok); serr != nil {
+				return nil, fmt.Errorf("failed to save token: %w", serr)
+			}
 		}
 	}
-	return config.Client(ctx, tok), nil
+
+	// Create persistent token source that saves refreshed tokens
+	tokenSource := keychain.NewPersistentTokenSource(config, tok)
+	return oauth2.NewClient(ctx, tokenSource), nil
 }
 
 func tokenFromFile(file string) (*oauth2.Token, error) {

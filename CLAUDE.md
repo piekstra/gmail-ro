@@ -56,6 +56,12 @@ gmail-ro/
 │   │   ├── messages_test.go    # Message parsing tests
 │   │   ├── attachments.go      # Attachment download methods
 │   │   └── attachments_test.go # Attachment tests
+│   ├── keychain/
+│   │   ├── keychain.go         # Token storage interface, file fallback
+│   │   ├── keychain_darwin.go  # macOS Keychain support
+│   │   ├── keychain_linux.go   # Linux secret-tool support
+│   │   ├── token_source.go     # Persistent token source wrapper
+│   │   └── keychain_test.go    # Keychain tests
 │   └── zip/
 │       ├── extract.go          # Secure zip extraction
 │       └── extract_test.go     # Zip extraction tests
@@ -80,7 +86,13 @@ This CLI intentionally only supports read operations:
 
 Credentials are stored in `~/.config/gmail-ro/`:
 - `credentials.json` - OAuth client credentials (from Google Cloud Console)
-- `token.json` - OAuth access/refresh token (created on first auth)
+
+OAuth tokens are stored securely based on platform:
+- **macOS**: System Keychain (via `security` CLI)
+- **Linux**: libsecret (via `secret-tool`) if available, otherwise config file
+- **Fallback**: `~/.config/gmail-ro/token.json` with 0600 permissions
+
+On first run after upgrading, existing `token.json` files are automatically migrated to secure storage and backed up to `token.json.backup`.
 
 ### Command Patterns
 
@@ -260,6 +272,20 @@ mv ~/Downloads/client_secret_*.json ~/.config/gmail-ro/credentials.json
 ### "Token has been expired or revoked"
 
 Delete token and re-authenticate:
+
+**macOS (token in Keychain):**
+```bash
+security delete-generic-password -s gmail-ro -a oauth_token
+gmail-ro search "test"  # Will prompt for re-auth
+```
+
+**Linux (token in secret-tool):**
+```bash
+secret-tool clear service gmail-ro account oauth_token
+gmail-ro search "test"  # Will prompt for re-auth
+```
+
+**File-based storage:**
 ```bash
 rm ~/.config/gmail-ro/token.json
 gmail-ro search "test"  # Will prompt for re-auth
@@ -284,7 +310,9 @@ Key dependencies:
 ## Security
 
 - **Read-only scope**: Cannot modify, send, or delete emails
-- **Local token storage**: OAuth tokens stored with 0600 permissions
+- **Secure token storage**: OAuth tokens stored in system keychain (macOS) or secret-tool (Linux) when available
+- **File fallback**: When secure storage is unavailable, tokens stored with 0600 permissions
+- **Token refresh persistence**: Refreshed tokens are automatically saved to prevent re-authentication
 - **No credential exposure**: Credentials never logged or transmitted
 
 ## Error Message Conventions
