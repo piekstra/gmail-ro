@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/oauth2"
 	gmailapi "google.golang.org/api/gmail/v1"
 )
 
@@ -93,23 +94,63 @@ func TestSaveToken(t *testing.T) {
 		tmpDir := t.TempDir()
 		tokenPath := filepath.Join(tmpDir, "token.json")
 
-		token := &struct {
-			AccessToken string `json:"access_token"`
-		}{AccessToken: "test-token"}
+		token := &oauth2.Token{
+			AccessToken:  "test-access-token",
+			RefreshToken: "test-refresh-token",
+			TokenType:    "Bearer",
+		}
 
-		// Use a simple struct instead of oauth2.Token to avoid import cycle
-		err := os.WriteFile(tokenPath, []byte(`{"access_token":"test-token"}`), 0600)
+		// Actually call saveToken
+		err := saveToken(tokenPath, token)
 		require.NoError(t, err)
 
+		// Verify file permissions
 		info, err := os.Stat(tokenPath)
 		require.NoError(t, err)
 		assert.Equal(t, os.FileMode(0600), info.Mode().Perm())
 
-		// Verify content
-		data, err := os.ReadFile(tokenPath)
+		// Verify content can be read back
+		readToken, err := tokenFromFile(tokenPath)
 		require.NoError(t, err)
-		assert.Contains(t, string(data), "test-token")
-		_ = token // Suppress unused warning
+		assert.Equal(t, "test-access-token", readToken.AccessToken)
+		assert.Equal(t, "test-refresh-token", readToken.RefreshToken)
+		assert.Equal(t, "Bearer", readToken.TokenType)
+	})
+
+	t.Run("creates file if it does not exist", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		tokenPath := filepath.Join(tmpDir, "subdir", "token.json")
+
+		// Create parent directory (saveToken doesn't create parents)
+		err := os.MkdirAll(filepath.Dir(tokenPath), 0755)
+		require.NoError(t, err)
+
+		token := &oauth2.Token{AccessToken: "new-token"}
+
+		err = saveToken(tokenPath, token)
+		require.NoError(t, err)
+
+		// Verify file was created
+		_, err = os.Stat(tokenPath)
+		assert.NoError(t, err)
+	})
+
+	t.Run("overwrites existing file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		tokenPath := filepath.Join(tmpDir, "token.json")
+
+		// Save initial token
+		err := saveToken(tokenPath, &oauth2.Token{AccessToken: "old-token"})
+		require.NoError(t, err)
+
+		// Save new token
+		err = saveToken(tokenPath, &oauth2.Token{AccessToken: "new-token"})
+		require.NoError(t, err)
+
+		// Verify new content
+		readToken, err := tokenFromFile(tokenPath)
+		require.NoError(t, err)
+		assert.Equal(t, "new-token", readToken.AccessToken)
 	})
 }
 
