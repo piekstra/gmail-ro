@@ -102,6 +102,9 @@ gmail-ro search "after:2024/01/01 before:2024/02/01"
 gmail-ro search "from:alice@example.com subject:project has:attachment"
 ```
 
+Search results include both `ID` (message ID) and `ThreadId` (thread ID). Either can be
+used with the `thread` command.
+
 ### Read a Message
 
 ```bash
@@ -115,11 +118,20 @@ gmail-ro read 18abc123def456 --json
 ### View Thread
 
 ```bash
-# View entire conversation
+# View entire conversation (accepts message ID or thread ID)
 gmail-ro thread 18abc123def456
 
 # JSON output
 gmail-ro thread 18abc123def456 --json
+```
+
+The thread command accepts either a message ID or thread ID. If you pass a message ID
+(from search results), it automatically resolves to the containing thread.
+
+### Version
+
+```bash
+gmail-ro version
 ```
 
 ### Search Query Reference
