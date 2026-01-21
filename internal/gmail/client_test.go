@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	gmailapi "google.golang.org/api/gmail/v1"
 )
 
 func TestGetConfigDir(t *testing.T) {
@@ -116,4 +117,78 @@ func TestClientConstants(t *testing.T) {
 	assert.Equal(t, "gmail-ro", configDirName)
 	assert.Equal(t, "credentials.json", credentialsFile)
 	assert.Equal(t, "token.json", tokenFile)
+}
+
+func TestGetLabelName(t *testing.T) {
+	t.Run("returns name for cached label", func(t *testing.T) {
+		client := &Client{
+			labels: map[string]*gmailapi.Label{
+				"Label_123": {Id: "Label_123", Name: "Work"},
+				"Label_456": {Id: "Label_456", Name: "Personal"},
+			},
+			labelsLoaded: true,
+		}
+
+		assert.Equal(t, "Work", client.GetLabelName("Label_123"))
+		assert.Equal(t, "Personal", client.GetLabelName("Label_456"))
+	})
+
+	t.Run("returns ID for uncached label", func(t *testing.T) {
+		client := &Client{
+			labels:       map[string]*gmailapi.Label{},
+			labelsLoaded: true,
+		}
+
+		assert.Equal(t, "Unknown_Label", client.GetLabelName("Unknown_Label"))
+	})
+
+	t.Run("returns ID when labels not loaded", func(t *testing.T) {
+		client := &Client{
+			labels:       nil,
+			labelsLoaded: false,
+		}
+
+		assert.Equal(t, "Label_123", client.GetLabelName("Label_123"))
+	})
+}
+
+func TestGetLabels(t *testing.T) {
+	t.Run("returns nil when labels not loaded", func(t *testing.T) {
+		client := &Client{
+			labels:       nil,
+			labelsLoaded: false,
+		}
+
+		result := client.GetLabels()
+		assert.Nil(t, result)
+	})
+
+	t.Run("returns all cached labels", func(t *testing.T) {
+		label1 := &gmailapi.Label{Id: "Label_1", Name: "Work"}
+		label2 := &gmailapi.Label{Id: "Label_2", Name: "Personal"}
+
+		client := &Client{
+			labels: map[string]*gmailapi.Label{
+				"Label_1": label1,
+				"Label_2": label2,
+			},
+			labelsLoaded: true,
+		}
+
+		result := client.GetLabels()
+		assert.Len(t, result, 2)
+		assert.Contains(t, result, label1)
+		assert.Contains(t, result, label2)
+	})
+
+	t.Run("returns empty slice for empty cache", func(t *testing.T) {
+		client := &Client{
+			labels:       map[string]*gmailapi.Label{},
+			labelsLoaded: true,
+		}
+
+		result := client.GetLabels()
+		assert.NotNil(t, result)
+		assert.Empty(t, result)
+	})
 }
