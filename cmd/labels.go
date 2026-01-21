@@ -2,9 +2,7 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 
@@ -79,9 +77,7 @@ Examples:
 		})
 
 		if labelsJSONOutput {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "  ")
-			return enc.Encode(labels)
+			return printJSON(labels)
 		}
 
 		// Text output
