@@ -59,6 +59,7 @@ For more query operators, see: https://support.google.com/mail/answer/7190`,
 
 		for _, msg := range messages {
 			fmt.Printf("ID: %s\n", msg.ID)
+			fmt.Printf("ThreadId: %s\n", msg.ThreadId)
 			fmt.Printf("From: %s\n", msg.From)
 			fmt.Printf("Subject: %s\n", msg.Subject)
 			fmt.Printf("Date: %s\n", msg.Date)

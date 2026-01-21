@@ -10,13 +10,14 @@ import (
 
 // Message represents a simplified email message
 type Message struct {
-	ID      string
-	Subject string
-	From    string
-	To      string
-	Date    string
-	Snippet string
-	Body    string
+	ID       string
+	ThreadId string
+	Subject  string
+	From     string
+	To       string
+	Date     string
+	Snippet  string
+	Body     string
 }
 
 // SearchMessages searches for messages matching the query
@@ -58,11 +59,23 @@ func (c *Client) GetMessage(messageID string, includeBody bool) (*Message, error
 	return parseMessage(msg, includeBody), nil
 }
 
-// GetThread retrieves all messages in a thread
-func (c *Client) GetThread(threadID string) ([]*Message, error) {
-	thread, err := c.Service.Users.Threads.Get(c.UserID, threadID).Format("full").Do()
+// GetThread retrieves all messages in a thread.
+// The id parameter can be either a thread ID or a message ID.
+// If a message ID is provided, the thread ID is resolved automatically.
+func (c *Client) GetThread(id string) ([]*Message, error) {
+	thread, err := c.Service.Users.Threads.Get(c.UserID, id).Format("full").Do()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get thread: %w", err)
+		// If the ID wasn't found as a thread ID, try treating it as a message ID
+		msg, msgErr := c.Service.Users.Messages.Get(c.UserID, id).Format("minimal").Do()
+		if msgErr != nil {
+			// Return the original thread error if message lookup also fails
+			return nil, fmt.Errorf("failed to get thread: %w", err)
+		}
+		// Use the thread ID from the message
+		thread, err = c.Service.Users.Threads.Get(c.UserID, msg.ThreadId).Format("full").Do()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get thread: %w", err)
+		}
 	}
 
 	var messages []*Message
@@ -75,8 +88,9 @@ func (c *Client) GetThread(threadID string) ([]*Message, error) {
 
 func parseMessage(msg *gmail.Message, includeBody bool) *Message {
 	m := &Message{
-		ID:      msg.Id,
-		Snippet: msg.Snippet,
+		ID:       msg.Id,
+		ThreadId: msg.ThreadId,
+		Snippet:  msg.Snippet,
 	}
 
 	// Extract headers

@@ -11,8 +11,9 @@ import (
 func TestParseMessage(t *testing.T) {
 	t.Run("extracts headers correctly", func(t *testing.T) {
 		msg := &gmail.Message{
-			Id:      "msg123",
-			Snippet: "This is a test...",
+			Id:       "msg123",
+			ThreadId: "thread456",
+			Snippet:  "This is a test...",
 			Payload: &gmail.MessagePart{
 				Headers: []*gmail.MessagePartHeader{
 					{Name: "Subject", Value: "Test Subject"},
@@ -26,11 +27,27 @@ func TestParseMessage(t *testing.T) {
 		result := parseMessage(msg, false)
 
 		assert.Equal(t, "msg123", result.ID)
+		assert.Equal(t, "thread456", result.ThreadId)
 		assert.Equal(t, "Test Subject", result.Subject)
 		assert.Equal(t, "alice@example.com", result.From)
 		assert.Equal(t, "bob@example.com", result.To)
 		assert.Equal(t, "Mon, 1 Jan 2024 12:00:00 +0000", result.Date)
 		assert.Equal(t, "This is a test...", result.Snippet)
+	})
+
+	t.Run("extracts thread ID", func(t *testing.T) {
+		msg := &gmail.Message{
+			Id:       "msg123",
+			ThreadId: "thread789",
+			Payload: &gmail.MessagePart{
+				Headers: []*gmail.MessagePartHeader{},
+			},
+		}
+
+		result := parseMessage(msg, false)
+
+		assert.Equal(t, "msg123", result.ID)
+		assert.Equal(t, "thread789", result.ThreadId)
 	})
 
 	t.Run("handles case-insensitive headers", func(t *testing.T) {
@@ -187,16 +204,18 @@ func TestExtractBody(t *testing.T) {
 func TestMessageStruct(t *testing.T) {
 	t.Run("message struct has all fields", func(t *testing.T) {
 		msg := &Message{
-			ID:      "test-id",
-			Subject: "Test Subject",
-			From:    "from@example.com",
-			To:      "to@example.com",
-			Date:    "2024-01-01",
-			Snippet: "Preview...",
-			Body:    "Full body content",
+			ID:       "test-id",
+			ThreadId: "thread-id",
+			Subject:  "Test Subject",
+			From:     "from@example.com",
+			To:       "to@example.com",
+			Date:     "2024-01-01",
+			Snippet:  "Preview...",
+			Body:     "Full body content",
 		}
 
 		assert.Equal(t, "test-id", msg.ID)
+		assert.Equal(t, "thread-id", msg.ThreadId)
 		assert.Equal(t, "Test Subject", msg.Subject)
 		assert.Equal(t, "from@example.com", msg.From)
 		assert.Equal(t, "to@example.com", msg.To)

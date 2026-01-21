@@ -8,7 +8,7 @@ import (
 
 func TestThreadCommand(t *testing.T) {
 	t.Run("has correct use", func(t *testing.T) {
-		assert.Equal(t, "thread <thread-id>", threadCmd.Use)
+		assert.Equal(t, "thread <id>", threadCmd.Use)
 	})
 
 	t.Run("requires exactly one argument", func(t *testing.T) {

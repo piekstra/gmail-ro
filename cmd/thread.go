@@ -18,12 +18,14 @@ func init() {
 }
 
 var threadCmd = &cobra.Command{
-	Use:   "thread <thread-id>",
+	Use:   "thread <id>",
 	Short: "Read a full conversation thread",
 	Long: `Read all messages in a Gmail conversation thread.
 
-The thread ID is the same as the message ID for any message in the thread.
-Use the search command to find message/thread IDs.
+Accepts either a thread ID or a message ID. If a message ID is provided,
+the thread containing that message will be retrieved automatically.
+Use the search command to find message IDs (the ThreadId field can also
+be used directly).
 
 Examples:
   gmail-ro thread 18abc123def456
