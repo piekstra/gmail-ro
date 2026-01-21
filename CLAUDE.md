@@ -287,6 +287,24 @@ Key dependencies:
 - **Local token storage**: OAuth tokens stored with 0600 permissions
 - **No credential exposure**: Credentials never logged or transmitted
 
+## Error Message Conventions
+
+Follow [Go Code Review Comments](https://github.com/go/wiki/wiki/CodeReviewComments#error-strings):
+
+- Start with lowercase
+- Don't end with punctuation
+- Be descriptive but concise
+
+```go
+// Good
+return fmt.Errorf("failed to get message: %w", err)
+return fmt.Errorf("attachment not found: %s", filename)
+
+// Bad
+return fmt.Errorf("Failed to get message: %w", err)  // capitalized
+return fmt.Errorf("attachment not found.")           // ends with punctuation
+```
+
 ## Commit Conventions
 
 Use conventional commits:
