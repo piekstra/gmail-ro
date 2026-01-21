@@ -268,3 +268,257 @@ func TestParseMessageWithBody(t *testing.T) {
 		assert.Empty(t, result.Body)
 	})
 }
+
+func TestExtractAttachments(t *testing.T) {
+	t.Run("detects attachment by filename", func(t *testing.T) {
+		payload := &gmail.MessagePart{
+			MimeType: "multipart/mixed",
+			Parts: []*gmail.MessagePart{
+				{
+					MimeType: "text/plain",
+					Body:     &gmail.MessagePartBody{Data: "body"},
+				},
+				{
+					Filename: "report.pdf",
+					MimeType: "application/pdf",
+					Body: &gmail.MessagePartBody{
+						Size:         12345,
+						AttachmentId: "att123",
+					},
+				},
+			},
+		}
+
+		attachments := extractAttachments(payload, "")
+		assert.Len(t, attachments, 1)
+		assert.Equal(t, "report.pdf", attachments[0].Filename)
+		assert.Equal(t, "application/pdf", attachments[0].MimeType)
+		assert.Equal(t, int64(12345), attachments[0].Size)
+		assert.Equal(t, "att123", attachments[0].AttachmentID)
+		assert.Equal(t, "1", attachments[0].PartID)
+	})
+
+	t.Run("detects attachment by Content-Disposition header", func(t *testing.T) {
+		payload := &gmail.MessagePart{
+			MimeType: "multipart/mixed",
+			Parts: []*gmail.MessagePart{
+				{
+					Filename: "data.csv",
+					MimeType: "text/csv",
+					Headers: []*gmail.MessagePartHeader{
+						{Name: "Content-Disposition", Value: "attachment; filename=\"data.csv\""},
+					},
+					Body: &gmail.MessagePartBody{Size: 100},
+				},
+			},
+		}
+
+		attachments := extractAttachments(payload, "")
+		assert.Len(t, attachments, 1)
+		assert.Equal(t, "data.csv", attachments[0].Filename)
+		assert.False(t, attachments[0].IsInline)
+	})
+
+	t.Run("detects inline attachment", func(t *testing.T) {
+		payload := &gmail.MessagePart{
+			MimeType: "multipart/related",
+			Parts: []*gmail.MessagePart{
+				{
+					Filename: "image.png",
+					MimeType: "image/png",
+					Headers: []*gmail.MessagePartHeader{
+						{Name: "Content-Disposition", Value: "inline; filename=\"image.png\""},
+					},
+					Body: &gmail.MessagePartBody{Size: 5000},
+				},
+			},
+		}
+
+		attachments := extractAttachments(payload, "")
+		assert.Len(t, attachments, 1)
+		assert.Equal(t, "image.png", attachments[0].Filename)
+		assert.True(t, attachments[0].IsInline)
+	})
+
+	t.Run("handles nested multipart with multiple attachments", func(t *testing.T) {
+		payload := &gmail.MessagePart{
+			MimeType: "multipart/mixed",
+			Parts: []*gmail.MessagePart{
+				{
+					MimeType: "multipart/alternative",
+					Parts: []*gmail.MessagePart{
+						{MimeType: "text/plain", Body: &gmail.MessagePartBody{Data: "text"}},
+						{MimeType: "text/html", Body: &gmail.MessagePartBody{Data: "html"}},
+					},
+				},
+				{
+					Filename: "doc1.pdf",
+					MimeType: "application/pdf",
+					Body:     &gmail.MessagePartBody{Size: 1000, AttachmentId: "att1"},
+				},
+				{
+					Filename: "doc2.pdf",
+					MimeType: "application/pdf",
+					Body:     &gmail.MessagePartBody{Size: 2000, AttachmentId: "att2"},
+				},
+			},
+		}
+
+		attachments := extractAttachments(payload, "")
+		assert.Len(t, attachments, 2)
+		assert.Equal(t, "doc1.pdf", attachments[0].Filename)
+		assert.Equal(t, "1", attachments[0].PartID)
+		assert.Equal(t, "doc2.pdf", attachments[1].Filename)
+		assert.Equal(t, "2", attachments[1].PartID)
+	})
+
+	t.Run("handles message with no attachments", func(t *testing.T) {
+		payload := &gmail.MessagePart{
+			MimeType: "text/plain",
+			Body:     &gmail.MessagePartBody{Data: "simple message"},
+		}
+
+		attachments := extractAttachments(payload, "")
+		assert.Empty(t, attachments)
+	})
+
+	t.Run("generates correct part paths for deeply nested", func(t *testing.T) {
+		payload := &gmail.MessagePart{
+			MimeType: "multipart/mixed",
+			Parts: []*gmail.MessagePart{
+				{
+					MimeType: "multipart/related",
+					Parts: []*gmail.MessagePart{
+						{
+							MimeType: "multipart/alternative",
+							Parts: []*gmail.MessagePart{
+								{MimeType: "text/plain", Body: &gmail.MessagePartBody{}},
+							},
+						},
+						{
+							Filename: "nested.png",
+							MimeType: "image/png",
+							Body:     &gmail.MessagePartBody{Size: 500},
+						},
+					},
+				},
+			},
+		}
+
+		attachments := extractAttachments(payload, "")
+		assert.Len(t, attachments, 1)
+		assert.Equal(t, "nested.png", attachments[0].Filename)
+		assert.Equal(t, "0.1", attachments[0].PartID)
+	})
+}
+
+func TestIsAttachment(t *testing.T) {
+	t.Run("returns true for part with filename", func(t *testing.T) {
+		part := &gmail.MessagePart{Filename: "test.pdf"}
+		assert.True(t, isAttachment(part))
+	})
+
+	t.Run("returns true for Content-Disposition attachment", func(t *testing.T) {
+		part := &gmail.MessagePart{
+			Headers: []*gmail.MessagePartHeader{
+				{Name: "Content-Disposition", Value: "attachment; filename=\"test.pdf\""},
+			},
+		}
+		assert.True(t, isAttachment(part))
+	})
+
+	t.Run("returns false for plain text part", func(t *testing.T) {
+		part := &gmail.MessagePart{
+			MimeType: "text/plain",
+			Body:     &gmail.MessagePartBody{Data: "text"},
+		}
+		assert.False(t, isAttachment(part))
+	})
+
+	t.Run("handles case-insensitive Content-Disposition", func(t *testing.T) {
+		part := &gmail.MessagePart{
+			Headers: []*gmail.MessagePartHeader{
+				{Name: "CONTENT-DISPOSITION", Value: "ATTACHMENT"},
+			},
+		}
+		assert.True(t, isAttachment(part))
+	})
+}
+
+func TestIsInlineAttachment(t *testing.T) {
+	t.Run("returns true for inline disposition", func(t *testing.T) {
+		part := &gmail.MessagePart{
+			Filename: "image.png",
+			Headers: []*gmail.MessagePartHeader{
+				{Name: "Content-Disposition", Value: "inline; filename=\"image.png\""},
+			},
+		}
+		assert.True(t, isInlineAttachment(part))
+	})
+
+	t.Run("returns false for attachment disposition", func(t *testing.T) {
+		part := &gmail.MessagePart{
+			Filename: "doc.pdf",
+			Headers: []*gmail.MessagePartHeader{
+				{Name: "Content-Disposition", Value: "attachment; filename=\"doc.pdf\""},
+			},
+		}
+		assert.False(t, isInlineAttachment(part))
+	})
+
+	t.Run("returns false for no disposition header", func(t *testing.T) {
+		part := &gmail.MessagePart{Filename: "file.txt"}
+		assert.False(t, isInlineAttachment(part))
+	})
+}
+
+func TestParseMessageWithAttachments(t *testing.T) {
+	t.Run("extracts attachments when body is requested", func(t *testing.T) {
+		msg := &gmail.Message{
+			Id: "msg123",
+			Payload: &gmail.MessagePart{
+				MimeType: "multipart/mixed",
+				Headers: []*gmail.MessagePartHeader{
+					{Name: "Subject", Value: "With Attachment"},
+				},
+				Parts: []*gmail.MessagePart{
+					{
+						MimeType: "text/plain",
+						Body: &gmail.MessagePartBody{
+							Data: base64.URLEncoding.EncodeToString([]byte("body text")),
+						},
+					},
+					{
+						Filename: "attachment.pdf",
+						MimeType: "application/pdf",
+						Body:     &gmail.MessagePartBody{Size: 1234, AttachmentId: "att123"},
+					},
+				},
+			},
+		}
+
+		result := parseMessage(msg, true)
+		assert.Equal(t, "body text", result.Body)
+		assert.Len(t, result.Attachments, 1)
+		assert.Equal(t, "attachment.pdf", result.Attachments[0].Filename)
+	})
+
+	t.Run("does not extract attachments when body not requested", func(t *testing.T) {
+		msg := &gmail.Message{
+			Id: "msg123",
+			Payload: &gmail.MessagePart{
+				MimeType: "multipart/mixed",
+				Parts: []*gmail.MessagePart{
+					{
+						Filename: "attachment.pdf",
+						MimeType: "application/pdf",
+						Body:     &gmail.MessagePartBody{Size: 1234},
+					},
+				},
+			},
+		}
+
+		result := parseMessage(msg, false)
+		assert.Empty(t, result.Attachments)
+	})
+}

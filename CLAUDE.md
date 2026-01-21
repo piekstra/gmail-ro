@@ -43,13 +43,21 @@ gmail-ro/
 │   ├── root.go                 # Root command, version command
 │   ├── search.go               # Search messages command
 │   ├── read.go                 # Read single message command
-│   └── thread.go               # Read conversation thread command
+│   ├── thread.go               # Read conversation thread command
+│   ├── attachments.go          # Attachments parent command
+│   ├── attachments_list.go     # List attachments subcommand
+│   └── attachments_download.go # Download attachments subcommand
 ├── internal/
-│   └── gmail/
-│       ├── client.go           # OAuth2 client, authentication
-│       ├── client_test.go      # Client tests
-│       ├── messages.go         # Message parsing, API operations
-│       └── messages_test.go    # Message parsing tests
+│   ├── gmail/
+│   │   ├── client.go           # OAuth2 client, authentication
+│   │   ├── client_test.go      # Client tests
+│   │   ├── messages.go         # Message/Attachment structs, parsing
+│   │   ├── messages_test.go    # Message parsing tests
+│   │   ├── attachments.go      # Attachment download methods
+│   │   └── attachments_test.go # Attachment tests
+│   └── zip/
+│       ├── extract.go          # Secure zip extraction
+│       └── extract_test.go     # Zip extraction tests
 ├── .github/workflows/
 │   ├── ci.yml                  # Lint and test on PR/push
 │   ├── auto-release.yml        # Create tags on main push
@@ -184,6 +192,35 @@ Gmail API returns messages in different formats:
 - `full` - Complete message with body (used for read/thread)
 
 Body content is base64url encoded and may be nested in multipart structures.
+
+### Attachment Handling
+
+Attachments are identified by:
+- `part.Filename != ""` - Primary detection
+- `Content-Disposition: attachment` header - Secondary detection
+
+For downloading:
+- Small attachments may have inline data in `part.Body.Data`
+- Large attachments require separate API call via `part.Body.AttachmentId`
+
+```bash
+# List attachments in a message
+gmail-ro attachments list <message-id>
+gmail-ro attachments list <message-id> --json
+
+# Download attachments
+gmail-ro attachments download <message-id> --all
+gmail-ro attachments download <message-id> --filename report.pdf
+gmail-ro attachments download <message-id> --all --output ~/Downloads
+
+# Download and extract zip files
+gmail-ro attachments download <message-id> --filename data.zip --extract
+```
+
+Zip extraction includes security safeguards:
+- 100MB per-file limit, 500MB total limit
+- Path traversal prevention
+- Max 1000 files, 10 levels depth
 
 ## Common Issues
 

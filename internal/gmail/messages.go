@@ -10,14 +10,25 @@ import (
 
 // Message represents a simplified email message
 type Message struct {
-	ID       string
-	ThreadId string
-	Subject  string
-	From     string
-	To       string
-	Date     string
-	Snippet  string
-	Body     string
+	ID          string        `json:"id"`
+	ThreadId    string        `json:"threadId"`
+	Subject     string        `json:"subject"`
+	From        string        `json:"from"`
+	To          string        `json:"to"`
+	Date        string        `json:"date"`
+	Snippet     string        `json:"snippet"`
+	Body        string        `json:"body,omitempty"`
+	Attachments []*Attachment `json:"attachments,omitempty"`
+}
+
+// Attachment represents metadata about an email attachment
+type Attachment struct {
+	Filename     string `json:"filename"`
+	MimeType     string `json:"mimeType"`
+	Size         int64  `json:"size"`
+	AttachmentID string `json:"attachmentId,omitempty"`
+	PartID       string `json:"partId"`
+	IsInline     bool   `json:"isInline"`
 }
 
 // SearchMessages searches for messages matching the query
@@ -109,9 +120,71 @@ func parseMessage(msg *gmail.Message, includeBody bool) *Message {
 
 	if includeBody && msg.Payload != nil {
 		m.Body = extractBody(msg.Payload)
+		m.Attachments = extractAttachments(msg.Payload, "")
 	}
 
 	return m
+}
+
+// extractAttachments recursively traverses message parts to find attachments
+func extractAttachments(payload *gmail.MessagePart, partPath string) []*Attachment {
+	var attachments []*Attachment
+
+	// Check if this part is an attachment
+	if isAttachment(payload) {
+		att := &Attachment{
+			Filename: payload.Filename,
+			MimeType: payload.MimeType,
+			PartID:   partPath,
+			IsInline: isInlineAttachment(payload),
+		}
+		if payload.Body != nil {
+			att.Size = payload.Body.Size
+			att.AttachmentID = payload.Body.AttachmentId
+		}
+		attachments = append(attachments, att)
+	}
+
+	// Recursively check nested parts
+	for i, part := range payload.Parts {
+		childPath := fmt.Sprintf("%d", i)
+		if partPath != "" {
+			childPath = fmt.Sprintf("%s.%d", partPath, i)
+		}
+		attachments = append(attachments, extractAttachments(part, childPath)...)
+	}
+
+	return attachments
+}
+
+// isAttachment determines if a message part is an attachment
+func isAttachment(part *gmail.MessagePart) bool {
+	// Primary check: has a filename
+	if part.Filename != "" {
+		return true
+	}
+
+	// Secondary check: Content-Disposition header indicates attachment
+	for _, header := range part.Headers {
+		if strings.ToLower(header.Name) == "content-disposition" {
+			value := strings.ToLower(header.Value)
+			if strings.HasPrefix(value, "attachment") {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// isInlineAttachment checks if attachment is inline (e.g., embedded image)
+func isInlineAttachment(part *gmail.MessagePart) bool {
+	for _, header := range part.Headers {
+		if strings.ToLower(header.Name) == "content-disposition" {
+			return strings.HasPrefix(strings.ToLower(header.Value), "inline")
+		}
+	}
+	return false
 }
 
 func extractBody(payload *gmail.MessagePart) string {
