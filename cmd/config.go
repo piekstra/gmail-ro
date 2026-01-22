@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/piekstra/gmail-ro/internal/gmail"
-	"github.com/piekstra/gmail-ro/internal/keychain"
+	"github.com/open-cli-collective/gmail-ro/internal/gmail"
+	"github.com/open-cli-collective/gmail-ro/internal/keychain"
 	"github.com/spf13/cobra"
 )
 

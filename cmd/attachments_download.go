@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/piekstra/gmail-ro/internal/gmail"
-	ziputil "github.com/piekstra/gmail-ro/internal/zip"
+	"github.com/open-cli-collective/gmail-ro/internal/gmail"
+	ziputil "github.com/open-cli-collective/gmail-ro/internal/zip"
 	"github.com/spf13/cobra"
 )
 

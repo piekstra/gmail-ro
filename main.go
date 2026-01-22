@@ -1,6 +1,6 @@
 package main
 
-import "github.com/piekstra/gmail-ro/cmd"
+import "github.com/open-cli-collective/gmail-ro/cmd"
 
 func main() {
 	cmd.Execute()

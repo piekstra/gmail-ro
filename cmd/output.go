@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/piekstra/gmail-ro/internal/gmail"
+	"github.com/open-cli-collective/gmail-ro/internal/gmail"
 )
 
 // newGmailClient creates and returns a new Gmail client

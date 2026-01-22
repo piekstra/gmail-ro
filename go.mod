@@ -1,4 +1,4 @@
-module github.com/piekstra/gmail-ro
+module github.com/open-cli-collective/gmail-ro
 
 go 1.21
 
