@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/piekstra/gmail-ro/internal/keychain"
+	"github.com/open-cli-collective/gmail-ro/internal/keychain"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/gmail/v1"
