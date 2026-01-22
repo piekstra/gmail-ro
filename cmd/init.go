@@ -136,10 +136,12 @@ func extractAuthCode(input string) string {
 	// If it looks like a URL, try to extract the code parameter
 	if strings.HasPrefix(input, "http://localhost") || strings.HasPrefix(input, "https://localhost") {
 		if u, err := url.Parse(input); err == nil {
-			if code := u.Query().Get("code"); code != "" {
-				return code
-			}
+			// Return the code if present, empty string if not
+			// (e.g., URL has ?error=access_denied instead of ?code=...)
+			return u.Query().Get("code")
 		}
+		// URL parsing failed, return empty
+		return ""
 	}
 
 	// Otherwise treat as raw code
