@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	serviceName = "gmail-ro"
+	serviceName = "gmail-readonly"
 	tokenKey    = "oauth_token"
 	tokenFile   = "token.json"
 )

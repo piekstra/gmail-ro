@@ -33,8 +33,8 @@ var labelsCmd = &cobra.Command{
 Shows label name, type (system/user/category), and message counts.
 
 Examples:
-  gmail-ro labels
-  gmail-ro labels --json`,
+  gmro labels
+  gmro labels --json`,
 	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		client, err := newGmailClient()

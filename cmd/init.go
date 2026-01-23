@@ -33,7 +33,7 @@ Prerequisites:
   2. Enable the Gmail API
   3. Create OAuth 2.0 credentials (Desktop app type)
   4. Download the credentials JSON file
-  5. Save it to ~/.config/gmail-ro/credentials.json`,
+  5. Save it to ~/.config/gmail-readonly/credentials.json`,
 	Args: cobra.NoArgs,
 	RunE: runInit,
 }
@@ -68,7 +68,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 			return verifyConnectivity()
 		}
 
-		fmt.Println("Setup complete! Try: gmail-ro search \"is:unread\"")
+		fmt.Println("Setup complete! Try: gmro search \"is:unread\"")
 		return nil
 	}
 
@@ -124,7 +124,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Println()
-	fmt.Println("Setup complete! Try: gmail-ro search \"is:unread\"")
+	fmt.Println("Setup complete! Try: gmro search \"is:unread\"")
 	return nil
 }
 
@@ -170,7 +170,7 @@ func verifyConnectivity() error {
 	fmt.Println()
 	fmt.Printf("Authenticated as: %s\n", profile.EmailAddress)
 	fmt.Println()
-	fmt.Println("Setup complete! Try: gmail-ro search \"is:unread\"")
+	fmt.Println("Setup complete! Try: gmro search \"is:unread\"")
 	return nil
 }
 
@@ -189,5 +189,5 @@ func printCredentialsInstructions(credPath string) {
 	fmt.Println("   - Download the JSON file")
 	fmt.Printf("5. Save the downloaded file to:\n   %s\n", credPath)
 	fmt.Println()
-	fmt.Println("Then run 'gmail-ro init' again.")
+	fmt.Println("Then run 'gmro init' again.")
 }

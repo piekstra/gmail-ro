@@ -22,25 +22,42 @@ jobs:
         run: |
           $testDir = "winget-validate-test"
           $testVersion = "0.0.1"
-          $testHash = "0000000000000000000000000000000000000000000000000000000000000001"
+          # Valid SHA256 hashes for testing (must be different to avoid warning)
+          $testHashX64 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          $testHashArm64 = "a3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b856"
 
           New-Item -ItemType Directory -Path $testDir -Force | Out-Null
 
           # Process version manifest
-          $content = Get-Content "packaging/winget/OpenCLICollective.gmail-ro.yaml" -Raw
+          $content = Get-Content "packaging/winget/OpenCLICollective.gmail-readonly.yaml" -Raw
           $content = $content -replace "0\.0\.0", $testVersion
-          Set-Content "$testDir/OpenCLICollective.gmail-ro.yaml" $content -Encoding UTF8
+          Set-Content "$testDir/OpenCLICollective.gmail-readonly.yaml" $content -Encoding UTF8
 
           # Process locale manifest
-          $content = Get-Content "packaging/winget/OpenCLICollective.gmail-ro.locale.en-US.yaml" -Raw
+          $content = Get-Content "packaging/winget/OpenCLICollective.gmail-readonly.locale.en-US.yaml" -Raw
           $content = $content -replace "0\.0\.0", $testVersion
-          Set-Content "$testDir/OpenCLICollective.gmail-ro.locale.en-US.yaml" $content -Encoding UTF8
+          Set-Content "$testDir/OpenCLICollective.gmail-readonly.locale.en-US.yaml" $content -Encoding UTF8
 
-          # Process installer manifest (version + checksum)
-          $content = Get-Content "packaging/winget/OpenCLICollective.gmail-ro.installer.yaml" -Raw
-          $content = $content -replace "0\.0\.0", $testVersion
-          $content = $content -replace "0{64}", $testHash
-          Set-Content "$testDir/OpenCLICollective.gmail-ro.installer.yaml" $content -Encoding UTF8
+          # Process installer manifest (version + checksums)
+          # Read raw file and process line by line to replace checksums in order
+          $lines = Get-Content "packaging/winget/OpenCLICollective.gmail-readonly.installer.yaml"
+          $firstHashReplaced = $false
+          $newLines = @()
+          foreach ($line in $lines) {
+            if ($line -match "0\.0\.0") {
+              $line = $line -replace "0\.0\.0", $testVersion
+            }
+            if ($line -match "0{64}") {
+              if (-not $firstHashReplaced) {
+                $line = $line -replace "0{64}", $testHashX64
+                $firstHashReplaced = $true
+              } else {
+                $line = $line -replace "0{64}", $testHashArm64
+              }
+            }
+            $newLines += $line
+          }
+          $newLines | Set-Content "$testDir/OpenCLICollective.gmail-readonly.installer.yaml" -Encoding UTF8
 
           Write-Host "Generated test manifests:"
           Get-ChildItem $testDir | ForEach-Object { Write-Host "  $_" }

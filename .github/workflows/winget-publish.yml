@@ -24,7 +24,7 @@ jobs:
         id: check-manifest
         shell: pwsh
         run: |
-          $response = Invoke-WebRequest -Uri "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/o/OpenCLICollective/gmail-ro" -Method Head -SkipHttpErrorCheck
+          $response = Invoke-WebRequest -Uri "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/o/OpenCLICollective/gmail-readonly" -Method Head -SkipHttpErrorCheck
           if ($response.StatusCode -eq 200) {
             Write-Host "Manifest exists - will use wingetcreate update"
             echo "exists=true" >> $env:GITHUB_OUTPUT
@@ -53,26 +53,27 @@ jobs:
           gh release download "v${{ inputs.version }}" --pattern "checksums.txt" --dir .
 
           $checksums = Get-Content checksums.txt
-          $x64Line = $checksums | Select-String "windows_amd64.zip"
-          if (-not $x64Line) {
-            Write-Error "Could not find windows_amd64.zip checksum in checksums.txt"
-            exit 1
-          }
-          $x64Hash = $x64Line.Line.Split()[0]
+          $x64Hash = ($checksums | Select-String "windows_amd64.zip").Line.Split()[0]
+          $arm64Hash = ($checksums | Select-String "windows_arm64.zip").Line.Split()[0]
 
           Write-Host "x64 SHA256: $x64Hash"
+          Write-Host "arm64 SHA256: $arm64Hash"
+
           echo "X64_HASH=$x64Hash" >> $env:GITHUB_ENV
+          echo "ARM64_HASH=$arm64Hash" >> $env:GITHUB_ENV
 
       - name: Update manifest (existing package)
         if: steps.check-manifest.outputs.exists == 'true'
         shell: pwsh
         run: |
           $version = "${{ inputs.version }}"
-          $url = "https://github.com/open-cli-collective/gmail-ro/releases/download/v${version}/gmail-ro_v${version}_windows_amd64.zip"
+          $urlX64 = "https://github.com/open-cli-collective/gmail-ro/releases/download/v${version}/gmro_v${version}_windows_amd64.zip"
+          $urlArm64 = "https://github.com/open-cli-collective/gmail-ro/releases/download/v${version}/gmro_v${version}_windows_arm64.zip"
 
           Write-Host "Updating existing manifest to version $version"
-          Write-Host "URL: $url"
-          ./wingetcreate.exe update OpenCLICollective.gmail-ro --version $version --urls $url --submit --token ${{ secrets.WINGET_GITHUB_TOKEN }}
+          Write-Host "URL x64: $urlX64"
+          Write-Host "URL arm64: $urlArm64"
+          ./wingetcreate.exe update OpenCLICollective.gmail-readonly --version $version --urls "$urlX64|$urlArm64" --submit --token ${{ secrets.WINGET_GITHUB_TOKEN }}
 
       - name: Create manifest (new package)
         if: steps.check-manifest.outputs.exists == 'false'
@@ -83,20 +84,23 @@ jobs:
           New-Item -ItemType Directory -Path $manifestDir -Force | Out-Null
 
           # Update version manifest
-          $versionManifest = Get-Content "packaging/winget/OpenCLICollective.gmail-ro.yaml" -Raw
+          $versionManifest = Get-Content "packaging/winget/OpenCLICollective.gmail-readonly.yaml" -Raw
           $versionManifest = $versionManifest -replace "0\.0\.0", $version
-          Set-Content "$manifestDir/OpenCLICollective.gmail-ro.yaml" $versionManifest -Encoding UTF8
+          Set-Content "$manifestDir/OpenCLICollective.gmail-readonly.yaml" $versionManifest -Encoding UTF8
 
           # Update locale manifest
-          $localeManifest = Get-Content "packaging/winget/OpenCLICollective.gmail-ro.locale.en-US.yaml" -Raw
+          $localeManifest = Get-Content "packaging/winget/OpenCLICollective.gmail-readonly.locale.en-US.yaml" -Raw
           $localeManifest = $localeManifest -replace "0\.0\.0", $version
-          Set-Content "$manifestDir/OpenCLICollective.gmail-ro.locale.en-US.yaml" $localeManifest -Encoding UTF8
+          Set-Content "$manifestDir/OpenCLICollective.gmail-readonly.locale.en-US.yaml" $localeManifest -Encoding UTF8
 
-          # Update installer manifest with version and checksum
-          $installerManifest = Get-Content "packaging/winget/OpenCLICollective.gmail-ro.installer.yaml" -Raw
+          # Update installer manifest with version and checksums
+          $installerManifest = Get-Content "packaging/winget/OpenCLICollective.gmail-readonly.installer.yaml" -Raw
           $installerManifest = $installerManifest -replace "0\.0\.0", $version
-          $installerManifest = $installerManifest -replace "0{64}", $env:X64_HASH
-          Set-Content "$manifestDir/OpenCLICollective.gmail-ro.installer.yaml" $installerManifest -Encoding UTF8
+          # Replace x64 checksum (first occurrence)
+          $installerManifest = $installerManifest -replace "0{64}", $env:X64_HASH, 1
+          # Replace arm64 checksum (second occurrence)
+          $installerManifest = $installerManifest -replace "0{64}", $env:ARM64_HASH
+          Set-Content "$manifestDir/OpenCLICollective.gmail-readonly.installer.yaml" $installerManifest -Encoding UTF8
 
           Write-Host "Generated manifests:"
           Get-ChildItem $manifestDir | ForEach-Object { Write-Host "  $_" }

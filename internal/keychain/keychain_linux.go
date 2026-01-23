@@ -113,7 +113,7 @@ func setInSecretTool(token *oauth2.Token) error {
 	_ = deleteFromSecretTool()
 
 	cmd := exec.Command("secret-tool", "store",
-		"--label", "gmail-ro OAuth Token",
+		"--label", "gmail-readonly OAuth Token",
 		"service", serviceName,
 		"account", tokenKey)
 	cmd.Stdin = strings.NewReader(string(data))

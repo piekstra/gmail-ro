@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	configDirName   = "gmail-ro"
+	configDirName   = "gmail-readonly"
 	credentialsFile = "credentials.json"
 	tokenFile       = "token.json"
 )

@@ -24,8 +24,8 @@ Use the search command to find message IDs (the ThreadID field can also
 be used directly).
 
 Examples:
-  gmail-ro thread 18abc123def456
-  gmail-ro thread 18abc123def456 --json`,
+  gmro thread 18abc123def456
+  gmro thread 18abc123def456 --json`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		client, err := newGmailClient()

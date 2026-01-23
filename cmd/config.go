@@ -19,8 +19,8 @@ func init() {
 
 var configCmd = &cobra.Command{
 	Use:   "config",
-	Short: "Manage gmail-ro configuration",
-	Long:  "View and manage gmail-ro configuration and authentication status.",
+	Short: "Manage gmro configuration",
+	Long:  "View and manage gmro configuration and authentication status.",
 }
 
 var configShowCmd = &cobra.Command{
@@ -110,7 +110,7 @@ func runConfigShow(cmd *cobra.Command, args []string) error {
 	// Show help if not fully configured
 	if credStatus == "Not found" || tokenStatus == "Not found" {
 		fmt.Println()
-		fmt.Println("Run 'gmail-ro init' to complete setup.")
+		fmt.Println("Run 'gmro init' to complete setup.")
 	}
 
 	return nil
@@ -124,7 +124,7 @@ func runConfigTest(cmd *cobra.Command, args []string) error {
 	if !keychain.HasStoredToken() {
 		fmt.Println("  OAuth token: Not found")
 		fmt.Println()
-		fmt.Println("Run 'gmail-ro init' to authenticate.")
+		fmt.Println("Run 'gmro init' to authenticate.")
 		return fmt.Errorf("no OAuth token found")
 	}
 	fmt.Println("  OAuth token: Found")
@@ -135,7 +135,7 @@ func runConfigTest(cmd *cobra.Command, args []string) error {
 		fmt.Println("  Token valid: FAILED")
 		fmt.Println()
 		fmt.Println("Token may be expired or revoked.")
-		fmt.Println("Run 'gmail-ro config clear' then 'gmail-ro init' to re-authenticate.")
+		fmt.Println("Run 'gmro config clear' then 'gmro init' to re-authenticate.")
 		return fmt.Errorf("failed to create client: %w", err)
 	}
 	fmt.Println("  Token valid: OK")
@@ -170,7 +170,7 @@ func runConfigClear(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Cleared OAuth token from %s.\n", backend)
 	fmt.Println()
 	fmt.Println("Note: credentials.json is not removed (contains OAuth client config, not user data).")
-	fmt.Println("Run 'gmail-ro init' to re-authenticate.")
+	fmt.Println("Run 'gmro init' to re-authenticate.")
 
 	return nil
 }

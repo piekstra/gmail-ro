@@ -1,4 +1,4 @@
-# gmail-ro
+# gmro
 
 A read-only command-line interface for Gmail. Search, read, and view email threads without any ability to modify, send, or delete messages.
 
@@ -16,7 +16,7 @@ A read-only command-line interface for Gmail. Search, read, and view email threa
 
 ```bash
 brew tap open-cli-collective/tap
-brew install --cask gmail-ro
+brew install gmail-readonly
 ```
 
 ### Download Binary
@@ -53,16 +53,16 @@ go install github.com/open-cli-collective/gmail-ro@latest
 5. Click **Create**
 6. Download the JSON file
 
-### 3. Configure gmail-ro
+### 3. Configure gmro
 
 1. Create the config directory:
    ```bash
-   mkdir -p ~/.config/gmail-ro
+   mkdir -p ~/.config/gmail-readonly
    ```
 
 2. Move the downloaded credentials file:
    ```bash
-   mv ~/Downloads/client_secret_*.json ~/.config/gmail-ro/credentials.json
+   mv ~/Downloads/client_secret_*.json ~/.config/gmail-readonly/credentials.json
    ```
 
 ### 4. Authenticate
@@ -70,7 +70,7 @@ go install github.com/open-cli-collective/gmail-ro@latest
 Run any command to trigger the OAuth flow:
 
 ```bash
-gmail-ro search "is:unread"
+gmro search "is:unread"
 ```
 
 1. A URL will be displayed - open it in your browser
@@ -79,7 +79,7 @@ gmail-ro search "is:unread"
 4. Copy the authorization code
 5. Paste it back into the terminal
 
-Your token will be saved to `~/.config/gmail-ro/token.json` for future use.
+Your token will be saved securely (system keychain on macOS/Linux, or `~/.config/gmail-readonly/token.json` as fallback).
 
 ## Usage
 
@@ -87,19 +87,19 @@ Your token will be saved to `~/.config/gmail-ro/token.json` for future use.
 
 ```bash
 # Basic search
-gmail-ro search "from:someone@example.com"
+gmro search "from:someone@example.com"
 
 # Limit results
-gmail-ro search "subject:meeting" --max 20
+gmro search "subject:meeting" --max 20
 
 # JSON output
-gmail-ro search "is:unread" --json
+gmro search "is:unread" --json
 
 # Date range
-gmail-ro search "after:2024/01/01 before:2024/02/01"
+gmro search "after:2024/01/01 before:2024/02/01"
 
 # Combined queries
-gmail-ro search "from:alice@example.com subject:project has:attachment"
+gmro search "from:alice@example.com subject:project has:attachment"
 ```
 
 Search results include both `ID` (message ID) and `ThreadID` (thread ID). Either can be
@@ -109,20 +109,20 @@ used with the `thread` command.
 
 ```bash
 # Get message by ID (from search results)
-gmail-ro read 18abc123def456
+gmro read 18abc123def456
 
 # JSON output
-gmail-ro read 18abc123def456 --json
+gmro read 18abc123def456 --json
 ```
 
 ### View Thread
 
 ```bash
 # View entire conversation (accepts message ID or thread ID)
-gmail-ro thread 18abc123def456
+gmro thread 18abc123def456
 
 # JSON output
-gmail-ro thread 18abc123def456 --json
+gmro thread 18abc123def456 --json
 ```
 
 The thread command accepts either a message ID or thread ID. If you pass a message ID
@@ -131,12 +131,12 @@ The thread command accepts either a message ID or thread ID. If you pass a messa
 ### Version
 
 ```bash
-gmail-ro version
+gmro version
 ```
 
 ### Search Query Reference
 
-gmail-ro supports all Gmail search operators:
+gmro supports all Gmail search operators:
 
 | Operator | Example | Description |
 |----------|---------|-------------|
@@ -156,30 +156,30 @@ See [Gmail search operators](https://support.google.com/mail/answer/7190) for th
 
 ## Shell Completion
 
-gmail-ro supports tab completion for bash, zsh, fish, and PowerShell.
+gmro supports tab completion for bash, zsh, fish, and PowerShell.
 
 ### Bash
 
 ```bash
 # Load in current session
-source <(gmail-ro completion bash)
+source <(gmro completion bash)
 
 # Install permanently (Linux)
-gmail-ro completion bash | sudo tee /etc/bash_completion.d/gmail-ro > /dev/null
+gmro completion bash | sudo tee /etc/bash_completion.d/gmro > /dev/null
 
 # Install permanently (macOS with Homebrew)
-gmail-ro completion bash > $(brew --prefix)/etc/bash_completion.d/gmail-ro
+gmro completion bash > $(brew --prefix)/etc/bash_completion.d/gmro
 ```
 
 ### Zsh
 
 ```bash
 # Load in current session
-source <(gmail-ro completion zsh)
+source <(gmro completion zsh)
 
 # Install permanently
 mkdir -p ~/.zsh/completions
-gmail-ro completion zsh > ~/.zsh/completions/_gmail-ro
+gmro completion zsh > ~/.zsh/completions/_gmro
 
 # Add to ~/.zshrc if not already present:
 # fpath=(~/.zsh/completions $fpath)
@@ -190,36 +190,37 @@ gmail-ro completion zsh > ~/.zsh/completions/_gmail-ro
 
 ```bash
 # Load in current session
-gmail-ro completion fish | source
+gmro completion fish | source
 
 # Install permanently
-gmail-ro completion fish > ~/.config/fish/completions/gmail-ro.fish
+gmro completion fish > ~/.config/fish/completions/gmro.fish
 ```
 
 ### PowerShell
 
 ```powershell
 # Load in current session
-gmail-ro completion powershell | Out-String | Invoke-Expression
+gmro completion powershell | Out-String | Invoke-Expression
 
 # Install permanently (add to $PROFILE)
-gmail-ro completion powershell >> $PROFILE
+gmro completion powershell >> $PROFILE
 ```
 
 ## Configuration
 
-Configuration files are stored in `~/.config/gmail-ro/`:
+Configuration files are stored in `~/.config/gmail-readonly/`:
 
 | File | Description |
 |------|-------------|
 | `credentials.json` | OAuth client credentials (from Google Cloud Console) |
-| `token.json` | OAuth access/refresh token (created automatically) |
+| `token.json` | OAuth access/refresh token (fallback if keychain unavailable) |
 
 ## Security
 
 - This tool only requests **read-only** access to Gmail
 - No write, send, or delete operations are possible
-- OAuth tokens are stored locally with `0600` permissions
+- OAuth tokens are stored in system keychain (macOS Keychain / Linux secret-tool) when available
+- File-based storage uses `0600` permissions
 - Credentials never leave your machine
 
 ## Troubleshooting
@@ -228,15 +229,15 @@ Configuration files are stored in `~/.config/gmail-ro/`:
 
 Ensure `credentials.json` exists:
 ```bash
-ls -la ~/.config/gmail-ro/credentials.json
+ls -la ~/.config/gmail-readonly/credentials.json
 ```
 
 ### "Token has been expired or revoked"
 
-Delete the token file and re-authenticate:
+Clear the token and re-authenticate:
 ```bash
-rm ~/.config/gmail-ro/token.json
-gmail-ro search "test"
+gmro config clear
+gmro search "test"
 ```
 
 ### "Access blocked: This app's request is invalid"

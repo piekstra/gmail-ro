@@ -18,7 +18,7 @@ func TestGetConfigDir(t *testing.T) {
 
 		dir, err := getConfigDir()
 		require.NoError(t, err)
-		assert.Equal(t, filepath.Join(tmpDir, "gmail-ro"), dir)
+		assert.Equal(t, filepath.Join(tmpDir, "gmail-readonly"), dir)
 
 		// Verify directory was created
 		info, err := os.Stat(dir)
@@ -33,7 +33,7 @@ func TestGetConfigDir(t *testing.T) {
 		require.NoError(t, err)
 
 		home, _ := os.UserHomeDir()
-		expected := filepath.Join(home, ".config", "gmail-ro")
+		expected := filepath.Join(home, ".config", "gmail-readonly")
 		assert.Equal(t, expected, dir)
 	})
 
@@ -155,7 +155,7 @@ func TestSaveToken(t *testing.T) {
 }
 
 func TestClientConstants(t *testing.T) {
-	assert.Equal(t, "gmail-ro", configDirName)
+	assert.Equal(t, "gmail-readonly", configDirName)
 	assert.Equal(t, "credentials.json", credentialsFile)
 	assert.Equal(t, "token.json", tokenFile)
 }

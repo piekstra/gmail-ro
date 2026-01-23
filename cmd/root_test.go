@@ -9,7 +9,7 @@ import (
 
 func TestRootCommand(t *testing.T) {
 	t.Run("has correct use", func(t *testing.T) {
-		assert.Equal(t, "gmail-ro", rootCmd.Use)
+		assert.Equal(t, "gmro", rootCmd.Use)
 	})
 
 	t.Run("has short description", func(t *testing.T) {

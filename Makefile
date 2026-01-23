@@ -1,6 +1,6 @@
 .PHONY: build clean test test-cover test-short lint install release snapshot run fmt verify deps
 
-BINARY_NAME=gmail-ro
+BINARY_NAME=gmro
 VERSION?=dev
 COMMIT?=$(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_DATE?=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")

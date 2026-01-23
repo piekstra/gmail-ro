@@ -45,8 +45,8 @@ jobs:
 
           mkdir -p Formula
 
-          cat > Formula/gmail-ro.rb << 'FORMULAEOF'
-          class GmailRo < Formula
+          cat > Formula/gmail-readonly.rb << 'FORMULAEOF'
+          class GmailReadonly < Formula
             desc "Read-only command-line interface for Gmail"
             homepage "https://github.com/open-cli-collective/gmail-ro"
             license "MIT"
@@ -54,44 +54,44 @@ jobs:
 
             on_macos do
               on_arm do
-                url "https://github.com/open-cli-collective/gmail-ro/releases/download/v#{version}/gmail-ro_v#{version}_darwin_arm64.tar.gz"
+                url "https://github.com/open-cli-collective/gmail-ro/releases/download/v#{version}/gmro_v#{version}_darwin_arm64.tar.gz"
                 sha256 "DARWIN_ARM64_PLACEHOLDER"
               end
               on_intel do
-                url "https://github.com/open-cli-collective/gmail-ro/releases/download/v#{version}/gmail-ro_v#{version}_darwin_amd64.tar.gz"
+                url "https://github.com/open-cli-collective/gmail-ro/releases/download/v#{version}/gmro_v#{version}_darwin_amd64.tar.gz"
                 sha256 "DARWIN_AMD64_PLACEHOLDER"
               end
             end
 
             def install
-              bin.install "gmail-ro"
+              bin.install "gmro"
             end
 
             def caveats
               <<~EOS
-                To set up gmail-ro:
+                To set up gmro:
                 1. Create OAuth credentials at https://console.cloud.google.com/
-                2. Save credentials to ~/.config/gmail-ro/credentials.json
-                3. Run: gmail-ro search "test" to authenticate
+                2. Save credentials to ~/.config/gmail-readonly/credentials.json
+                3. Run: gmro search "test" to authenticate
 
                 See https://github.com/open-cli-collective/gmail-ro#setup for detailed instructions.
               EOS
             end
 
             test do
-              assert_match "gmail-ro", shell_output("#{bin}/gmail-ro --help")
+              assert_match "gmro", shell_output("#{bin}/gmro --help")
             end
           end
           FORMULAEOF
 
-          sed -i "s/VERSION_PLACEHOLDER/${VERSION_NUM}/g" Formula/gmail-ro.rb
-          sed -i "s/DARWIN_ARM64_PLACEHOLDER/${DARWIN_ARM64_SHA}/g" Formula/gmail-ro.rb
-          sed -i "s/DARWIN_AMD64_PLACEHOLDER/${DARWIN_AMD64_SHA}/g" Formula/gmail-ro.rb
+          sed -i "s/VERSION_PLACEHOLDER/${VERSION_NUM}/g" Formula/gmail-readonly.rb
+          sed -i "s/DARWIN_ARM64_PLACEHOLDER/${DARWIN_ARM64_SHA}/g" Formula/gmail-readonly.rb
+          sed -i "s/DARWIN_AMD64_PLACEHOLDER/${DARWIN_AMD64_SHA}/g" Formula/gmail-readonly.rb
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Update gmail-ro to ${VERSION_NUM}"
+          git commit -m "Update gmail-readonly to ${VERSION_NUM}"
           git push
 
   chocolatey:
@@ -110,31 +110,31 @@ jobs:
           gh release download "${{ github.ref_name }}" --pattern "checksums.txt" --dir .
 
           $checksums = Get-Content checksums.txt
-          $x64Line = $checksums | Select-String "windows_amd64.zip"
-          if (-not $x64Line) {
-            Write-Error "Could not find windows_amd64.zip checksum in checksums.txt"
-            exit 1
-          }
-          $x64Hash = $x64Line.Line.Split()[0]
+          $x64Hash = ($checksums | Select-String "windows_amd64.zip").Line.Split()[0]
+          $arm64Hash = ($checksums | Select-String "windows_arm64.zip").Line.Split()[0]
 
           Write-Host "x64 SHA256: $x64Hash"
+          Write-Host "arm64 SHA256: $arm64Hash"
+
           echo "X64_HASH=$x64Hash" >> $env:GITHUB_ENV
+          echo "ARM64_HASH=$arm64Hash" >> $env:GITHUB_ENV
           echo "VERSION=$version" >> $env:GITHUB_ENV
 
       - name: Update version and checksums
         shell: pwsh
         run: |
           # Update version in nuspec
-          $nuspec = 'packaging/chocolatey/gmail-ro.nuspec'
+          $nuspec = 'packaging/chocolatey/gmail-readonly.nuspec'
           (Get-Content $nuspec) -replace '<version>0.0.0</version>', "<version>$env:VERSION</version>" | Set-Content $nuspec
           Write-Host "Updated nuspec to version $env:VERSION"
 
-          # Inject checksum into install script
+          # Inject checksums into install script
           $script = 'packaging/chocolatey/tools/chocolateyInstall.ps1'
           $content = Get-Content $script -Raw
           $content = $content -replace 'CHECKSUM_AMD64_PLACEHOLDER', $env:X64_HASH
+          $content = $content -replace 'CHECKSUM_ARM64_PLACEHOLDER', $env:ARM64_HASH
           Set-Content $script $content
-          Write-Host "Injected checksum into install script"
+          Write-Host "Injected checksums into install script"
 
       - name: Pack Chocolatey package
         shell: pwsh
@@ -170,7 +170,7 @@ jobs:
         id: check-manifest
         shell: pwsh
         run: |
-          $response = Invoke-WebRequest -Uri "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/o/OpenCLICollective/gmail-ro" -Method Head -SkipHttpErrorCheck
+          $response = Invoke-WebRequest -Uri "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/o/OpenCLICollective/gmail-readonly" -Method Head -SkipHttpErrorCheck
           if ($response.StatusCode -eq 200) {
             Write-Host "Manifest exists - will use wingetcreate update"
             echo "exists=true" >> $env:GITHUB_OUTPUT
@@ -188,26 +188,27 @@ jobs:
           gh release download "${{ github.ref_name }}" --pattern "checksums.txt" --dir .
 
           $checksums = Get-Content checksums.txt
-          $x64Line = $checksums | Select-String "windows_amd64.zip"
-          if (-not $x64Line) {
-            Write-Error "Could not find windows_amd64.zip checksum in checksums.txt"
-            exit 1
-          }
-          $x64Hash = $x64Line.Line.Split()[0]
+          $x64Hash = ($checksums | Select-String "windows_amd64.zip").Line.Split()[0]
+          $arm64Hash = ($checksums | Select-String "windows_arm64.zip").Line.Split()[0]
 
           Write-Host "x64 SHA256: $x64Hash"
+          Write-Host "arm64 SHA256: $arm64Hash"
+
           echo "X64_HASH=$x64Hash" >> $env:GITHUB_ENV
+          echo "ARM64_HASH=$arm64Hash" >> $env:GITHUB_ENV
           echo "VERSION=$version" >> $env:GITHUB_ENV
 
       - name: Update manifest (existing package)
         if: steps.check-manifest.outputs.exists == 'true'
         shell: pwsh
         run: |
-          $url = "https://github.com/open-cli-collective/gmail-ro/releases/download/${{ github.ref_name }}/gmail-ro_v${{ env.VERSION }}_windows_amd64.zip"
+          $urlX64 = "https://github.com/open-cli-collective/gmail-ro/releases/download/${{ github.ref_name }}/gmro_v${{ env.VERSION }}_windows_amd64.zip"
+          $urlArm64 = "https://github.com/open-cli-collective/gmail-ro/releases/download/${{ github.ref_name }}/gmro_v${{ env.VERSION }}_windows_arm64.zip"
 
           Write-Host "Updating existing manifest to version $env:VERSION"
-          Write-Host "URL: $url"
-          ./wingetcreate.exe update OpenCLICollective.gmail-ro --version $env:VERSION --urls $url --submit --token ${{ secrets.WINGET_GITHUB_TOKEN }}
+          Write-Host "URL x64: $urlX64"
+          Write-Host "URL arm64: $urlArm64"
+          ./wingetcreate.exe update OpenCLICollective.gmail-readonly --version $env:VERSION --urls "$urlX64|$urlArm64" --submit --token ${{ secrets.WINGET_GITHUB_TOKEN }}
 
       - name: Create manifest (new package)
         if: steps.check-manifest.outputs.exists == 'false'
@@ -217,20 +218,23 @@ jobs:
           New-Item -ItemType Directory -Path $manifestDir -Force | Out-Null
 
           # Update version manifest
-          $versionManifest = Get-Content "packaging/winget/OpenCLICollective.gmail-ro.yaml" -Raw
+          $versionManifest = Get-Content "packaging/winget/OpenCLICollective.gmail-readonly.yaml" -Raw
           $versionManifest = $versionManifest -replace "0\.0\.0", $env:VERSION
-          Set-Content "$manifestDir/OpenCLICollective.gmail-ro.yaml" $versionManifest -Encoding UTF8
+          Set-Content "$manifestDir/OpenCLICollective.gmail-readonly.yaml" $versionManifest -Encoding UTF8
 
           # Update locale manifest
-          $localeManifest = Get-Content "packaging/winget/OpenCLICollective.gmail-ro.locale.en-US.yaml" -Raw
+          $localeManifest = Get-Content "packaging/winget/OpenCLICollective.gmail-readonly.locale.en-US.yaml" -Raw
           $localeManifest = $localeManifest -replace "0\.0\.0", $env:VERSION
-          Set-Content "$manifestDir/OpenCLICollective.gmail-ro.locale.en-US.yaml" $localeManifest -Encoding UTF8
+          Set-Content "$manifestDir/OpenCLICollective.gmail-readonly.locale.en-US.yaml" $localeManifest -Encoding UTF8
 
-          # Update installer manifest with version and checksum
-          $installerManifest = Get-Content "packaging/winget/OpenCLICollective.gmail-ro.installer.yaml" -Raw
+          # Update installer manifest with version and checksums
+          $installerManifest = Get-Content "packaging/winget/OpenCLICollective.gmail-readonly.installer.yaml" -Raw
           $installerManifest = $installerManifest -replace "0\.0\.0", $env:VERSION
-          $installerManifest = $installerManifest -replace "0{64}", $env:X64_HASH
-          Set-Content "$manifestDir/OpenCLICollective.gmail-ro.installer.yaml" $installerManifest -Encoding UTF8
+          # Replace x64 checksum (first occurrence)
+          $installerManifest = $installerManifest -replace "0{64}", $env:X64_HASH, 1
+          # Replace arm64 checksum (second occurrence - after first replacement)
+          $installerManifest = $installerManifest -replace "0{64}", $env:ARM64_HASH
+          Set-Content "$manifestDir/OpenCLICollective.gmail-readonly.installer.yaml" $installerManifest -Encoding UTF8
 
           Write-Host "Generated manifests:"
           Get-ChildItem $manifestDir | ForEach-Object { Write-Host "  $_" }

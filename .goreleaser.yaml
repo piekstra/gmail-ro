@@ -1,6 +1,6 @@
 version: 2
 
-project_name: gmail-ro
+project_name: gmro
 
 before:
   hooks:
@@ -8,7 +8,7 @@ before:
     - go test ./...
 
 builds:
-  - id: gmail-ro
+  - id: gmro
     env:
       - CGO_ENABLED=0
     goos:

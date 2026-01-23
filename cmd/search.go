@@ -23,10 +23,10 @@ var searchCmd = &cobra.Command{
 	Long: `Search for Gmail messages using Gmail's search syntax.
 
 Examples:
-  gmail-ro search "from:alice@example.com"
-  gmail-ro search "subject:meeting" --max 20
-  gmail-ro search "is:unread" --json
-  gmail-ro search "after:2024/01/01 before:2024/02/01"
+  gmro search "from:alice@example.com"
+  gmro search "subject:meeting" --max 20
+  gmro search "is:unread" --json
+  gmro search "after:2024/01/01 before:2024/02/01"
 
 For more query operators, see: https://support.google.com/mail/answer/7190`,
 	Args: cobra.ExactArgs(1),

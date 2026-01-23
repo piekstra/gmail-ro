@@ -41,10 +41,10 @@ or --all to download all attachments.
 Zip files can be automatically extracted with --extract flag.
 
 Examples:
-  gmail-ro attachments download 18abc123def456 --filename report.pdf
-  gmail-ro attachments download 18abc123def456 --all
-  gmail-ro attachments download 18abc123def456 --all --output ~/Downloads
-  gmail-ro attachments download 18abc123def456 --filename archive.zip --extract`,
+  gmro attachments download 18abc123def456 --filename report.pdf
+  gmro attachments download 18abc123def456 --all
+  gmro attachments download 18abc123def456 --all --output ~/Downloads
+  gmro attachments download 18abc123def456 --filename archive.zip --extract`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if downloadFilename == "" && !downloadAll {

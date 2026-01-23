@@ -1,10 +1,10 @@
 # CLAUDE.md
 
-This file provides guidance for AI agents working with the gmail-ro codebase.
+This file provides guidance for AI agents working with the gmro codebase.
 
 ## Project Overview
 
-gmail-ro is a **read-only** command-line interface for Gmail written in Go. It uses OAuth2 for authentication and only requests the `gmail.readonly` scope - no write, send, or delete operations are possible.
+gmro is a **read-only** command-line interface for Gmail written in Go. It uses OAuth2 for authentication and only requests the `gmail.readonly` scope - no write, send, or delete operations are possible.
 
 ## Quick Commands
 
@@ -37,7 +37,7 @@ make clean
 ## Architecture
 
 ```
-gmail-ro/
+gmro/
 ├── main.go                     # Entry point
 ├── cmd/
 │   ├── root.go                 # Root command, version command
@@ -81,19 +81,19 @@ The CLI provides commands for guided setup and configuration management:
 
 ```bash
 # Guided OAuth setup with clear instructions
-gmail-ro init
+gmro init
 
 # Setup without connectivity verification
-gmail-ro init --no-verify
+gmro init --no-verify
 
 # Check configuration status (credentials, token, email)
-gmail-ro config show
+gmro config show
 
 # Test Gmail API connectivity
-gmail-ro config test
+gmro config test
 
 # Clear stored OAuth token (forces re-authentication)
-gmail-ro config clear
+gmro config clear
 ```
 
 The `init` command improves the OAuth flow by:
@@ -113,13 +113,13 @@ This CLI intentionally only supports read operations:
 
 ### OAuth2 Configuration
 
-Credentials are stored in `~/.config/gmail-ro/`:
+Credentials are stored in `~/.config/gmail-readonly/`:
 - `credentials.json` - OAuth client credentials (from Google Cloud Console)
 
 OAuth tokens are stored securely based on platform:
 - **macOS**: System Keychain (via `security` CLI)
 - **Linux**: libsecret (via `secret-tool`) if available, otherwise config file
-- **Fallback**: `~/.config/gmail-ro/token.json` with 0600 permissions
+- **Fallback**: `~/.config/gmail-readonly/token.json` with 0600 permissions
 
 On first run after upgrading, existing `token.json` files are automatically migrated to secure storage and backed up to `token.json.backup`.
 
@@ -251,16 +251,16 @@ For downloading:
 
 ```bash
 # List attachments in a message
-gmail-ro attachments list <message-id>
-gmail-ro attachments list <message-id> --json
+gmro attachments list <message-id>
+gmro attachments list <message-id> --json
 
 # Download attachments
-gmail-ro attachments download <message-id> --all
-gmail-ro attachments download <message-id> --filename report.pdf
-gmail-ro attachments download <message-id> --all --output ~/Downloads
+gmro attachments download <message-id> --all
+gmro attachments download <message-id> --filename report.pdf
+gmro attachments download <message-id> --all --output ~/Downloads
 
 # Download and extract zip files
-gmail-ro attachments download <message-id> --filename data.zip --extract
+gmro attachments download <message-id> --filename data.zip --extract
 ```
 
 Zip extraction includes security safeguards:
@@ -276,13 +276,13 @@ Labels and categories are displayed in message output:
 
 ```bash
 # List all labels
-gmail-ro labels
-gmail-ro labels --json
+gmro labels
+gmro labels --json
 
 # Filter by label/category in search
-gmail-ro search "label:Work"
-gmail-ro search "category:updates"
-gmail-ro search "is:inbox -category:promotions -category:social"
+gmro search "label:Work"
+gmro search "category:updates"
+gmro search "is:inbox -category:promotions -category:social"
 ```
 
 **Label caching**: Labels are fetched once per session and cached. The `Client` struct maintains a label map for efficient ID-to-name resolution.
@@ -293,34 +293,34 @@ gmail-ro search "is:inbox -category:promotions -category:social"
 
 Ensure OAuth credentials are set up:
 ```bash
-mkdir -p ~/.config/gmail-ro
+mkdir -p ~/.config/gmail-readonly
 # Download credentials.json from Google Cloud Console
-mv ~/Downloads/client_secret_*.json ~/.config/gmail-ro/credentials.json
+mv ~/Downloads/client_secret_*.json ~/.config/gmail-readonly/credentials.json
 ```
 
 ### "Token has been expired or revoked"
 
 Clear the token and re-authenticate:
 ```bash
-gmail-ro config clear
-gmail-ro init
+gmro config clear
+gmro init
 ```
 
 Alternatively, delete the token manually:
 
 **macOS (token in Keychain):**
 ```bash
-security delete-generic-password -s gmail-ro -a oauth_token
+security delete-generic-password -s gmail-readonly -a oauth_token
 ```
 
 **Linux (token in secret-tool):**
 ```bash
-secret-tool clear service gmail-ro account oauth_token
+secret-tool clear service gmail-readonly account oauth_token
 ```
 
 **File-based storage:**
 ```bash
-rm ~/.config/gmail-ro/token.json
+rm ~/.config/gmail-readonly/token.json
 ```
 
 ### "Access blocked: This app's request is invalid"

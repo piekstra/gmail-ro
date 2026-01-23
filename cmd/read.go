@@ -19,8 +19,8 @@ var readCmd = &cobra.Command{
 The message ID can be obtained from the search command output.
 
 Examples:
-  gmail-ro read 18abc123def456
-  gmail-ro read 18abc123def456 --json`,
+  gmro read 18abc123def456
+  gmro read 18abc123def456 --json`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		client, err := newGmailClient()
