@@ -22,8 +22,8 @@ jobs:
         run: |
           $testDir = "winget-validate-test"
           $testVersion = "0.0.1"
-          $testHashX64 = "0000000000000000000000000000000000000000000000000000000000000001"
-          $testHashArm64 = "0000000000000000000000000000000000000000000000000000000000000002"
+          # Valid SHA256 hash for testing (64 hex chars)
+          $testHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
           New-Item -ItemType Directory -Path $testDir -Force | Out-Null
 
@@ -40,10 +40,8 @@ jobs:
           # Process installer manifest (version + checksums)
           $content = Get-Content "packaging/winget/OpenCLICollective.gmail-readonly.installer.yaml" -Raw
           $content = $content -replace "0\.0\.0", $testVersion
-          # Replace first checksum (x64)
-          $content = $content -replace "0{64}", $testHashX64, 1
-          # Replace second checksum (arm64)
-          $content = $content -replace "0{64}", $testHashArm64
+          # Replace placeholder checksums (64 zeros) with valid test hash
+          $content = $content -replace "0{64}", $testHash
           Set-Content "$testDir/OpenCLICollective.gmail-readonly.installer.yaml" $content -Encoding UTF8
 
           Write-Host "Generated test manifests:"

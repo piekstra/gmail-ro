@@ -61,10 +61,10 @@ jobs:
       - name: Verify installation
         shell: pwsh
         run: |
-          Write-Host "Testing gmro --version..."
-          gmro --version
+          Write-Host "Testing gmro version..."
+          gmro version
           if ($LASTEXITCODE -ne 0) {
-            Write-Error "gmro --version failed"
+            Write-Error "gmro version failed"
             exit 1
           }
           Write-Host "gmro is working!"
