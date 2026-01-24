@@ -19,7 +19,7 @@ Any alternative solutions or features you've considered.
 Show how you'd use this feature:
 
 ```bash
-gmail-ro <your-proposed-command>
+gmro <your-proposed-command>
 ```
 
 **Additional context**

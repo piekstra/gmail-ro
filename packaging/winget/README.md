@@ -95,7 +95,7 @@ To validate the manifests locally (requires Windows with winget):
 Once the package is published to winget-pkgs:
 
 ```powershell
-winget install OpenCLICollective.gmail-ro
+winget install OpenCLICollective.gmail-readonly
 ```
 
 ## Related

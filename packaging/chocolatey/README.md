@@ -50,18 +50,18 @@ To test the package locally:
 
 4. **Install locally** (requires admin):
    ```powershell
-   choco install gmail-ro -s . -y
+   choco install gmail-readonly -s . -y
    ```
 
 5. **Test the installation**:
    ```powershell
-   gmail-ro --version
-   gmail-ro --help
+   gmro --version
+   gmro --help
    ```
 
 6. **Uninstall**:
    ```powershell
-   choco uninstall gmail-ro -y
+   choco uninstall gmail-readonly -y
    ```
 
 ## Chocolatey Moderation Compliance
@@ -83,7 +83,7 @@ Only 64-bit Windows (x64/amd64) is supported. The GoReleaser configuration expli
 Once published to Chocolatey:
 
 ```powershell
-choco install gmail-ro
+choco install gmail-readonly
 ```
 
 ## Related

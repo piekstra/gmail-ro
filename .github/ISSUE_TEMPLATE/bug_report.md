@@ -6,11 +6,11 @@ labels: bug
 assignees: ''
 ---
 
-**gmail-ro version**
-Run `gmail-ro --version` and paste the output:
+**gmro version**
+Run `gmro --version` and paste the output:
 
 ```
-gmail-ro version ...
+gmro version ...
 ```
 
 **Environment**
