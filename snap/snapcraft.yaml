@@ -1,4 +1,4 @@
-name: ocli-gmail
+name: ocli-gmail-ro
 base: core22
 version: git
 summary: Read-only command-line interface for Gmail
@@ -30,7 +30,7 @@ plugs:
       - $HOME/.config/gmail-readonly
 
 apps:
-  ocli-gmail:
+  ocli-gmail-ro:
     command: bin/gmro
     plugs:
       - home

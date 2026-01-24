@@ -45,7 +45,7 @@ winget install OpenCLICollective.gmail-readonly
 **Snap**
 
 ```bash
-sudo snap install ocli-gmail
+sudo snap install ocli-gmail-ro
 ```
 
 > Note: After installation, the command is available as `gmro`.
