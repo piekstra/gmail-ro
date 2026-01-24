@@ -1,0 +1,58 @@
+name: ocli-gmail
+base: core22
+version: git
+summary: Read-only command-line interface for Gmail
+description: |
+  gmro is a read-only CLI for Gmail.
+
+  Features:
+  - Search messages using Gmail search syntax
+  - Read messages and view threads
+  - List and download attachments
+  - JSON output for scripting
+  - Uses gmail.readonly scope exclusively
+
+  Run 'gmro init' to set up OAuth credentials.
+
+grade: stable
+confinement: strict
+
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+
+plugs:
+  dot-config-gmail-readonly:
+    interface: personal-files
+    read:
+      - $HOME/.config/gmail-readonly
+    write:
+      - $HOME/.config/gmail-readonly
+
+apps:
+  ocli-gmail:
+    command: bin/gmro
+    plugs:
+      - home
+      - network
+      - dot-config-gmail-readonly
+    aliases:
+      - gmro
+
+parts:
+  gmro:
+    plugin: go
+    source: .
+    build-snaps:
+      - go/1.24/stable
+    build-environment:
+      - CGO_ENABLED: "0"
+    override-build: |
+      # Get version from git
+      VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "dev")
+
+      # Build with ldflags
+      go build -o $SNAPCRAFT_PART_INSTALL/bin/gmro \
+        -ldflags "-s -w \
+          -X github.com/open-cli-collective/gmail-ro/cmd.Version=${VERSION}" \
+        .

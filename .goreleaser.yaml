@@ -37,6 +37,23 @@ archives:
       - LICENSE
       - README.md
 
+# Linux packages (.deb and .rpm)
+nfpms:
+  - id: gmro
+    package_name: gmro
+    vendor: Open CLI Collective
+    homepage: https://github.com/open-cli-collective/gmail-ro
+    maintainer: Open CLI Collective <https://github.com/open-cli-collective>
+    description: Read-only command-line interface for Gmail
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+    contents:
+      - src: LICENSE
+        dst: /usr/share/licenses/gmro/LICENSE
+
 checksum:
   name_template: "checksums.txt"
 
