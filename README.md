@@ -87,7 +87,17 @@ sudo dnf install gmro
 
 **Binary download**
 
-Download `.deb`, `.rpm`, or `.tar.gz` from the [Releases page](https://github.com/open-cli-collective/gmail-ro/releases).
+Download `.deb`, `.rpm`, or `.tar.gz` from the [Releases page](https://github.com/open-cli-collective/gmail-ro/releases) - available for x64 and ARM64.
+
+```bash
+# Direct .deb install
+curl -LO https://github.com/open-cli-collective/gmail-ro/releases/latest/download/gmro_VERSION_linux_amd64.deb
+sudo dpkg -i gmro_VERSION_linux_amd64.deb
+
+# Direct .rpm install
+curl -LO https://github.com/open-cli-collective/gmail-ro/releases/latest/download/gmro-VERSION.x86_64.rpm
+sudo rpm -i gmro-VERSION.x86_64.rpm
+```
 
 ---
 
